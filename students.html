@@ -607,6 +607,10 @@
                 return 'المخزن لم يستجب في الوقت المتوقع — تحقق من اتصالك';
             if (/duplicate key/i.test(m))
                 return 'هذا الاسم مستخدم مسبقاً — اختر اسماً آخر';
+            if (/mime type .* is not supported/i.test(m))
+                return 'نوع هذا الملف غير مسموح في المخزن — اسمح بـ PDF من إعدادات المخزن أو شغّل ملف SQL الشامل';
+            if (/exceeded the maximum allowed size|too large/i.test(m))
+                return 'حجم الملف أكبر من الحد المسموح في المخزن';
             return m;
         }
         // مؤقت أمان: أي رفع لا يستغرق أكثر من 60 ثانية
@@ -1458,8 +1462,8 @@
                 resetSpForm(); closeModal('admin-modal'); await fetchAll();
             } catch (err) {
                 if (uploaded.length) await sb.storage.from(CONFIG.mediaBucket).remove(uploaded);
-                status.textContent = 'ERROR: ' + (err.message || err);
-                toast('فشلت العملية: ' + (err.message || err), 'error');
+                status.textContent = 'ERROR: ' + dbError(err);
+                toast('فشلت العملية: ' + dbError(err), 'error');
             } finally { btn.disabled = false; }
         });
 
