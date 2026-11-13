@@ -675,10 +675,21 @@
         async function loadProfile(uid) {
             const { data } = await sb.from('profiles').select('*').eq('id', uid).maybeSingle();
             if (data) return data;
-            // ترميم ذاتي: إن فقد الملف أنشئه من بيانات الحساب
-            const uname = ('user_' + (session.user.email || uid).split('@')[0]).replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 20);
-            const ins = await sb.from('profiles').insert({ id: uid, username: uname, display_name: uname }).select().single();
-            return ins.data;
+            // ترميم ذاتي: إن فقد الملف أنشئه من بيانات الحساب (مع إعادة محاولة عند تضارب الاسم)
+            const base = ('user_' + (session.user.email || uid).split('@')[0]).replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 16) || 'student';
+            let uname = base;
+            for (let i = 0; i < 5; i++) {
+                const r = await sb.from('profiles').insert({ id: uid, username: uname, display_name: uname }).select().single();
+                if (!r.error) return r.data;
+                if (/duplicate/i.test(r.error.message || '') || r.error.code === '23505') {
+                    uname = (base + '_' + Math.random().toString(36).slice(2, 6)).slice(0, 20);
+                    continue;
+                }
+                toast('تعذّر إنشاء ملفك الشخصي: ' + dbError(r.error), 'error');
+                return null;
+            }
+            toast('تعذّر إنشاء ملفك الشخصي — أعد المحاولة لاحقاً', 'error');
+            return null;
         }
 
         async function refreshMe() {
@@ -1385,6 +1396,8 @@
             if (!isAdmin) return;
             const rows = collectLevelsDraft();
             if (!rows.length) { toast('أضف مستوى واحداً على الأقل', 'error'); return; }
+            const mins = rows.map(r => r.min_points);
+            if (new Set(mins).size !== mins.length) { toast('يوجد مستويان بنفس الحد الأدنى — اجعل كل حد مختلفاً', 'error'); return; }
             // إعادة بناء الجدول: حذف ثم إدراج (الأسماء والحدود فقط)
             const del = await sb.from('levels').delete().neq('min_points', -1);
             if (del.error) { $('levels-status').textContent = 'فشل الحذف: ' + del.error.message; return; }
