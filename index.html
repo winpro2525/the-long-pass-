@@ -304,6 +304,7 @@
                 <a href="#home" class="nav-link px-3 py-2 muted hover:text-[color:var(--accent)] transition">الرئيسية</a>
                 <a href="#welcome" class="nav-link px-3 py-2 muted hover:text-[color:var(--accent)] transition">الأقسام</a>
                 <a href="#feed" class="nav-link px-3 py-2 muted hover:text-[color:var(--accent)] transition">المنشورات</a>
+                <a href="students.html" class="nav-link px-3 py-2 font-bold transition" style="color: var(--accent2)">🎓 منطقة الطلاب</a>
                 <a href="#contact" class="nav-link px-3 py-2 muted hover:text-[color:var(--accent)] transition">تواصل معنا</a>
             </nav>
 
@@ -317,6 +318,7 @@
             <a href="#home" class="block px-3 py-2 muted">الرئيسية</a>
             <a href="#welcome" class="block px-3 py-2 muted">الأقسام</a>
             <a href="#feed" class="block px-3 py-2 muted">المنشورات</a>
+            <a href="students.html" class="block px-3 py-2" style="color: var(--accent2)">🎓 منطقة الطلاب</a>
             <a href="#contact" class="block px-3 py-2 muted">تواصل معنا</a>
         </div>
     </header>
@@ -351,6 +353,7 @@
 
                 <div class="mt-9 flex flex-wrap justify-center gap-3">
                     <a href="#feed" class="btn btn-primary">🔥 تصفح المنشورات</a>
+                    <a href="students.html" class="btn btn-cyan">🎓 منطقة الطلاب</a>
                     <a href="#welcome" class="btn btn-ghost">🧭 استكشف الأقسام</a>
                     <a href="#contact" class="btn btn-soft">💬 تواصل معنا</a>
                 </div>
@@ -517,6 +520,7 @@
             <div class="flex gap-2 mb-5 border-b" style="border-color: var(--border)">
                 <button type="button" class="tab-btn active" data-tab="tab-new" id="tab-new-btn">✍️ نشر جديد</button>
                 <button type="button" class="tab-btn" data-tab="tab-manage">🗂 إدارة المنشورات <span id="manage-count" class="chip">0</span></button>
+                <button type="button" class="tab-btn" data-tab="tab-settings">⚙️ إعدادات الموقع</button>
             </div>
 
             <!-- تبويب النشر -->
@@ -601,6 +605,32 @@
             <div id="tab-manage" class="tab-pane hidden">
                 <div id="manage-list" class="flex flex-col gap-2"></div>
             </div>
+
+            <!-- تبويب إعدادات الموقع -->
+            <div id="tab-settings" class="tab-pane hidden">
+                <p class="muted text-sm mb-4">عدّل معلوماتك في قسم «تواصل معنا» واحفظ هنا مباشرة — بدون تعديل ملفات الموقع.</p>
+                <form id="settings-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="label">الاسم</label><input type="text" id="s-name" maxlength="60" class="field"></div>
+                        <div><label class="label">اللقب / الوصف</label><input type="text" id="s-title" maxlength="100" class="field"></div>
+                    </div>
+                    <div><label class="label">نبذة عنك</label><textarea id="s-bio" rows="3" class="field"></textarea></div>
+                    <div><label class="label">رابط صورة البروفايل (اختياري)</label><input type="url" id="s-avatar" dir="ltr" class="field" placeholder="https://..."></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div><label class="label">البريد</label><input type="text" id="s-email" dir="ltr" class="field" placeholder="you@gmail.com"></div>
+                        <div><label class="label">تيليجرام</label><input type="text" id="s-telegram" dir="ltr" class="field" placeholder="https://t.me/..."></div>
+                        <div><label class="label">واتساب</label><input type="text" id="s-whatsapp" dir="ltr" class="field" placeholder="https://wa.me/..."></div>
+                        <div><label class="label">ديسكورد</label><input type="text" id="s-discord" dir="ltr" class="field"></div>
+                        <div><label class="label">يوتيوب</label><input type="text" id="s-youtube" dir="ltr" class="field"></div>
+                        <div><label class="label">إنستغرام</label><input type="text" id="s-instagram" dir="ltr" class="field"></div>
+                        <div><label class="label">تيك توك</label><input type="text" id="s-tiktok" dir="ltr" class="field"></div>
+                        <div><label class="label">فيسبوك</label><input type="text" id="s-facebook" dir="ltr" class="field"></div>
+                        <div><label class="label">X (تويتر)</label><input type="text" id="s-x" dir="ltr" class="field"></div>
+                    </div>
+                    <button type="submit" id="settings-btn" class="btn btn-primary w-full font-tech tracking-wider">SAVE SETTINGS // حفظ الإعدادات</button>
+                    <p class="text-xs muted text-center">يتطلب تشغيل ملف SQL الثالث (جدول site_settings).</p>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -639,7 +669,6 @@
             OPEN_WORLD: { name: 'عالم مفتوح',     icon: '🌍', desc: 'خرائط ضخمة وحرية كاملة: أخبار وتحديثات ألعاب العالم المفتوح.' },
             SANDBOX:    { name: 'ساندبوكس',       icon: '🧪', desc: 'ألعاب الإبداع والتجريب بلا حدود، وأفكار وبلاغات من المجتمع.' },
             SHOOTER:    { name: 'شوتر تكتيكي',    icon: '🎯', desc: 'استراتيجيات وخرائط وتحليلات لألعاب الشوتر والباتل رويال.' },
-            LOADOUTS:   { name: 'مختبر الأسلحة',  icon: '🔫', desc: 'أفضل تجهيزات الأسلحة والعتاد وتعديلاتها لكل لعبة.' },
             MODS:       { name: 'مودات وإضافات',  icon: '🧩', desc: 'مودات وإضافات جاهزة للتحميل مع شرح طريقة التثبيت.' },
             LEAKS:      { name: 'تسريبات وأسرار', icon: '🕵️', desc: 'تسريبات وأسرار الألعاب القادمة قبل أن تصل للجميع.' },
             NEWS:       { name: 'أخبار',          icon: '📰', desc: 'آخر أخبار عالم الألعاب والإصدارات والتحديثات.' },
@@ -782,7 +811,7 @@
 
         // ---------------------------------------------------------- تأثيرات الترحيب
         (function typewriter() {
-            const phrases = ['أخبار الألعاب', 'المودات الحصرية', 'التسريبات والأسرار', 'مختبر الأسلحة', 'ملفات التحميل المجاني'];
+            const phrases = ['أخبار الألعاب', 'المودات الحصرية', 'التسريبات والأسرار', 'الشروحات والحلول', 'ملفات التحميل المجاني'];
             const el = $('typed');
             if (reduceMotion) { el.textContent = phrases[0]; return; }
             let pi = 0, ci = 0, del = false;
@@ -1098,8 +1127,27 @@
         });
 
         // ---------------------------------------------------------- قسم التواصل
+        let ownerData = JSON.parse(JSON.stringify(CONFIG.owner));
+
+        async function loadSiteSettings() {
+            try {
+                const { data } = await sb.from('site_settings').select('data').eq('id', 1).maybeSingle();
+                if (data && data.data && data.data.owner) {
+                    ownerData = { ...CONFIG.owner, ...data.data.owner, links: { ...CONFIG.owner.links, ...(data.data.owner.links || {}) } };
+                    renderOwner(); fillSettingsForm();
+                }
+            } catch (e) { /* الجدول غير موجود بعد — نستخدم الإعدادات الافتراضية */ }
+        }
+
+        function fillSettingsForm() {
+            const o = ownerData;
+            $('s-name').value = o.name || ''; $('s-title').value = o.title || ''; $('s-bio').value = o.bio || ''; $('s-avatar').value = o.avatar || '';
+            const L = o.links || {};
+            ['email','telegram','whatsapp','discord','youtube','instagram','tiktok','facebook','x'].forEach(k => { const el = $('s-' + k); if (el) el.value = L[k] || ''; });
+        }
+
         function renderOwner() {
-            const o = CONFIG.owner;
+            const o = ownerData;
             $('owner-name').textContent = o.name; $('owner-title').textContent = o.title; $('owner-bio').textContent = o.bio;
             const av = $('owner-avatar'); av.innerHTML = '';
             const avUrl = safeUrl(o.avatar);
@@ -1123,6 +1171,23 @@
             });
             if (!box.children.length) box.innerHTML = '<p class="muted text-sm">ستتم إضافة وسائل التواصل قريباً.</p>';
         }
+
+        $('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isAdmin) { toast('سجّل الدخول كأدمن أولاً', 'error'); return; }
+            const btn = $('settings-btn'); btn.disabled = true;
+            const links = {};
+            ['email','telegram','whatsapp','discord','youtube','instagram','tiktok','facebook','x'].forEach(k => links[k] = $('s-' + k).value.trim());
+            const owner = {
+                name: $('s-name').value.trim(), title: $('s-title').value.trim(), bio: $('s-bio').value.trim(),
+                avatar: $('s-avatar').value.trim(), links
+            };
+            const { error } = await sb.from('site_settings').update({ data: { owner }, updated_at: new Date().toISOString() }).eq('id', 1);
+            btn.disabled = false;
+            if (error) { toast('فشل الحفظ: ' + error.message + ' (تأكد من تشغيل SQL الثالث)', 'error'); return; }
+            ownerData = { ...CONFIG.owner, ...owner, links: { ...CONFIG.owner.links, ...links } };
+            renderOwner(); toast('تم حفظ إعدادات الموقع', 'ok');
+        });
 
         // ---------------------------------------------------------- تسجيل الدخول
         function updateAdminState(session) {
@@ -1320,6 +1385,7 @@
         (async function init() {
             $('year').textContent = new Date().getFullYear();
             buildCategoryUI(); renderOwner(); observeReveals(); onScroll();
+            loadSiteSettings();
             const { data } = await sb.auth.getSession(); updateAdminState(data.session);
             fetchPosts();
         })();
