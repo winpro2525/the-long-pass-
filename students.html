@@ -537,7 +537,11 @@
 
         // ---------------------------------------------------------- أدوات
         function esc(str) { return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
-        function safeUrl(u) { try { const x = new URL(u); return (x.protocol === 'http:' || x.protocol === 'https:') ? x.href : null; } catch { return null; } }
+        function safeUrl(u) {
+            const s = String(u || '').trim();
+            if (/^data:image\/(jpeg|png|webp|gif);base64,[a-z0-9+/=]+$/i.test(s)) return s;
+            try { const x = new URL(s); return (x.protocol === 'http:' || x.protocol === 'https:') ? x.href : null; } catch { return null; }
+        }
         function fmtSize(b) { if (!b && b !== 0) return ''; const u = ['B','KB','MB','GB']; let i = 0, n = b; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return (i === 0 ? n : n.toFixed(1)) + ' ' + u[i]; }
         function fileIcon(name) { const ext = (name.split('.').pop() || '').toLowerCase();
             if (['zip','rar','7z'].includes(ext)) return '🗜️'; if (['pdf'].includes(ext)) return '📕';
@@ -599,6 +603,8 @@
                 return 'المخزن غير موجود — شغّل ملف "sql الثالث" في Supabase';
             if (/rate limit/i.test(m))
                 return 'محاولات كثيرة — انتظر بضع دقائق ثم أعد المحاولة';
+            if (/UPLOAD_TIMEOUT/i.test(m))
+                return 'المخزن لم يستجب في الوقت المتوقع — تحقق من اتصالك';
             if (/duplicate key/i.test(m))
                 return 'هذا الاسم مستخدم مسبقاً — اختر اسماً آخر';
             return m;
@@ -622,6 +628,29 @@
                 if (!blob || blob.size >= file.size) return file;
                 return new File([blob], (file.name.replace(/\.[^.]+$/, '') || 'image') + '.jpg', { type: 'image/jpeg' });
             } catch { return file; }
+        }
+
+        // رفع ملف إلى مخزن الطلاب: يعيد بيانات المرفق، ويطلق استثناءً عند الفشل
+        async function uploadStudentFile(file, folder, maxDim, quality, ms) {
+            let f = file;
+            try { f = await compressImage(file, maxDim || 1280, quality || 0.85); } catch {}
+            const ext = (f.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+            const path = folder + '/' + me.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+            const { error } = await withTimeout(
+                sb.storage.from(CONFIG.studentBucket).upload(path, f, { contentType: f.type || 'application/octet-stream', upsert: true }),
+                ms || 45000, 'UPLOAD_TIMEOUT');
+            if (error) throw error;
+            return { name: f.name, path, size: f.size, type: f.type };
+        }
+        // نسخة مدمجة من الصورة (تعمل حتى لو تعذّر الوصول للمخزن)
+        function toDataUrl(file, maxBytes) {
+            return new Promise(res => {
+                if (!file || file.size > (maxBytes || 140000)) return res(null);
+                const r = new FileReader();
+                r.onload = () => res(typeof r.result === 'string' && r.result.startsWith('data:image/') ? r.result : null);
+                r.onerror = () => res(null);
+                r.readAsDataURL(file);
+            });
         }
 
         function applyTheme(t, animate) {
@@ -820,26 +849,44 @@
             e.preventDefault();
             if (!me) { toast('انتهت الجلسة — سجّل الدخول من جديد', 'error'); openModal('auth-modal'); return; }
             const btn = $('pf-save'); btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
+            const display = $('pf-display').value.trim(), username = $('pf-username').value.trim();
+            const f = $('pf-avatar').files[0];
+            let note = '';
             try {
-                const f = $('pf-avatar').files[0];
-                let avatar_url = me.avatar_url;
-                if (f) {
-                    const img = await compressImage(f, 512, 0.85);
-                    const ext = (img.name.split('.').pop() || 'png').toLowerCase();
-                    const path = 'avatars/' + me.id + '/avatar_' + Date.now() + '.' + ext;
-                    const { error: upErr } = await withTimeout(
-                        sb.storage.from(CONFIG.studentBucket).upload(path, img, { contentType: img.type, upsert: false }),
-                        60000, 'استغرق رفع الصورة وقتاً طويلاً — تحقق من اتصالك ثم أعد المحاولة');
-                    if (upErr) throw upErr;
-                    const old = storagePathFromUrl(avatar_url);
-                    if (old) sb.storage.from(CONFIG.studentBucket).remove([old]).catch(() => {});
-                    avatar_url = sb.storage.from(CONFIG.studentBucket).getPublicUrl(path).data.publicUrl;
-                }
-                const { data, error } = await sb.from('profiles').update({
-                    display_name: $('pf-display').value.trim(), username: $('pf-username').value.trim(), avatar_url
-                }).eq('id', me.id).select().single();
+                // 1) البيانات النصية تُحفظ أولاً — لا يعتمد حفظها على الصورة أبداً
+                const { data, error } = await sb.from('profiles').update({ display_name: display, username }).eq('id', me.id).select().single();
                 if (error) throw error;
-                me = data; renderProfile(); closeModal('profile-modal'); toast('تم تحديث ملفك الشخصي', 'ok');
+                me = data;
+                // 2) الصورة بعدها: محاولة رفع، وإن فشلت نستخدم نسخة مدمجة
+                if (f) {
+                    btn.textContent = '⏳ جاري رفع الصورة...';
+                    let avatar_url = me.avatar_url || null;
+                    let saved = false;
+                    try {
+                        let att = null;
+                        for (let attempt = 0; attempt < 2 && !att; attempt++) {
+                            try { att = await uploadStudentFile(f, 'avatars', attempt ? 200 : 256, attempt ? 0.6 : 0.7, attempt ? 60000 : 25000); }
+                            catch (e) { if (attempt === 1) throw e; }
+                        }
+                        const old = storagePathFromUrl(avatar_url);
+                        if (old) sb.storage.from(CONFIG.studentBucket).remove([old]).catch(() => {});
+                        avatar_url = sb.storage.from(CONFIG.studentBucket).getPublicUrl(att.path).data.publicUrl;
+                        saved = true;
+                    } catch (upErr) {
+                        let small = f;
+                        try { small = await compressImage(f, 200, 0.6); } catch {}
+                        const inline = await toDataUrl(small, 140000);
+                        if (inline) { avatar_url = inline; saved = true; note = ' — حُفظت صورتك بنسخة مدمجة.'; }
+                        else note = ' — تعذّر رفع الصورة: ' + dbError(upErr);
+                    }
+                    if (saved) {
+                        const r2 = await sb.from('profiles').update({ avatar_url }).eq('id', me.id).select().single();
+                        if (r2.error) note = ' — حُفظت بياناتك لكن الصورة لم تُحفظ: ' + dbError(r2.error);
+                        else me = r2.data;
+                    }
+                }
+                renderProfile(); closeModal('profile-modal');
+                toast('تم تحديث ملفك الشخصي' + note, 'ok');
             } catch (err) { toast('فشل الحفظ: ' + dbError(err), 'error'); }
             btn.disabled = false; btn.textContent = 'حفظ التغييرات';
         });
@@ -1061,22 +1108,18 @@
             const content = $('c-input').value.trim();
             if (!content && !cFile) { toast('اكتب تعليقاً أو أرفق ملفاً', 'error'); return; }
             const btn = $('c-send'); btn.disabled = true;
+            let upMsg = '';
             try {
                 let attachment = null;
                 if (cFile) {
-                    const img = await compressImage(cFile, 1280, 0.85);
-                    const ext = (img.name.split('.').pop() || 'bin').toLowerCase();
-                    const path = 'attachments/' + me.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
-                    const { error: upErr } = await withTimeout(
-                        sb.storage.from(CONFIG.studentBucket).upload(path, img, { contentType: img.type }),
-                        60000, 'استغرق رفع المرفق وقتاً طويلاً — أعد المحاولة');
-                    if (upErr) throw upErr;
-                    attachment = { name: img.name, path, size: img.size, type: img.type };
+                    try { attachment = await uploadStudentFile(cFile, 'attachments', 1280, 0.85, 45000); }
+                    catch (upErr) { upMsg = dbError(upErr); }
+                    if (!attachment && !content) { toast('تعذّر رفع المرفق: ' + upMsg, 'error'); btn.disabled = false; return; }
                 }
                 const { error } = await sb.from('comments').insert({ post_id: currentPost.id, user_id: me.id, content: content || '📎 مرفق', attachment });
                 if (error) throw error;
                 $('c-input').value = ''; cFile = null; $('c-file-preview').classList.add('hidden');
-                toast('💬 +2 نقطة! نُشر تعليقك', 'ok');
+                toast(upMsg ? 'نُشر تعليقك بدون المرفق: ' + upMsg : '💬 +2 نقطة! نُشر تعليقك', upMsg ? 'error' : 'ok');
                 loadComments(currentPost.id); loadMeRefresh();
             } catch (err) { toast('فشل النشر: ' + dbError(err), 'error'); }
             btn.disabled = false;
@@ -1133,21 +1176,18 @@
             const content = $('chat-input').value.trim();
             if (!content && !chatFile) return;
             const btn = $('chat-send'); btn.disabled = true;
+            let upMsg = '';
             try {
                 let attachment = null;
                 if (chatFile) {
-                    const img = await compressImage(chatFile, 1280, 0.85);
-                    const ext = (img.name.split('.').pop() || 'bin').toLowerCase();
-                    const path = 'attachments/' + me.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
-                    const { error: upErr } = await withTimeout(
-                        sb.storage.from(CONFIG.studentBucket).upload(path, img, { contentType: img.type }),
-                        60000, 'استغرق رفع المرفق وقتاً طويلاً — أعد المحاولة');
-                    if (upErr) throw upErr;
-                    attachment = { name: img.name, path, size: img.size, type: img.type };
+                    try { attachment = await uploadStudentFile(chatFile, 'attachments', 1280, 0.85, 45000); }
+                    catch (upErr) { upMsg = dbError(upErr); }
+                    if (!attachment && !content) { toast('تعذّر رفع المرفق: ' + upMsg, 'error'); btn.disabled = false; return; }
                 }
                 const { error } = await sb.from('chat_messages').insert({ user_id: me.id, content: content || null, attachment });
                 if (error) throw error;
                 $('chat-input').value = ''; chatFile = null; $('chat-file-info').classList.add('hidden');
+                if (upMsg) toast('أُرسلت الرسالة بدون المرفق: ' + upMsg, 'error');
                 loadChat();
             } catch (err) { toast('فشل الإرسال: ' + dbError(err), 'error'); }
             btn.disabled = false;
