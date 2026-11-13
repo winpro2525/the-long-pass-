@@ -555,6 +555,20 @@
             setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3800);
         }
 
+        // ترجمة أخطاء قاعدة البيانات/Tخزين إلى رسائل عربية مفهومة
+        function dbError(err) {
+            const m = String((err && err.message) || err || '');
+            if (/row-level security|policy|AccessDenied|Unauthorized/i.test(m))
+                return 'المساحة مرفوضة — شغّل ملف "sql الثالث" في Supabase ثم أعد المحاولة';
+            if (/Bucket not found|NoSuchBucket/i.test(m))
+                return 'المخزن غير موجود — شغّل ملف "sql الثالث" في Supabase';
+            if (/rate limit/i.test(m))
+                return 'محاولات كثيرة — انتظر بضع دقائق ثم أعد المحاولة';
+            if (/duplicate key/i.test(m))
+                return 'هذا الاسم مستخدم مسبقاً — اختر اسماً آخر';
+            return m;
+        }
+
         function applyTheme(t, animate) {
             document.documentElement.setAttribute('data-theme', t);
             $('theme-btn').firstElementChild.textContent = t === 'dark' ? '☀️' : '🌙';
@@ -707,8 +721,8 @@
         });
         $('profile-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!me) return;
-            const btn = $('pf-save'); btn.disabled = true;
+            if (!me) { toast('انتهت الجلسة — سجّل الدخول من جديد', 'error'); openModal('auth-modal'); return; }
+            const btn = $('pf-save'); btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
             try {
                 const f = $('pf-avatar').files[0];
                 let avatar_url = me.avatar_url;
@@ -726,8 +740,8 @@
                 }).eq('id', me.id).select().single();
                 if (error) throw error;
                 me = data; renderProfile(); closeModal('profile-modal'); toast('تم تحديث ملفك الشخصي', 'ok');
-            } catch (err) { toast('فشل الحفظ: ' + (err.message || err), 'error'); }
-            btn.disabled = false;
+            } catch (err) { toast('فشل الحفظ: ' + dbError(err), 'error'); }
+            btn.disabled = false; btn.textContent = 'حفظ التغييرات';
         });
 
         // ---------------------------------------------------------- المنشورات
@@ -961,7 +975,7 @@
                 $('c-input').value = ''; cFile = null; $('c-file-preview').classList.add('hidden');
                 toast('💬 +2 نقطة! نُشر تعليقك', 'ok');
                 loadComments(currentPost.id); loadMeRefresh();
-            } catch (err) { toast('فشل النشر: ' + (err.message || err), 'error'); }
+            } catch (err) { toast('فشل النشر: ' + dbError(err), 'error'); }
             btn.disabled = false;
         });
 
@@ -1029,7 +1043,7 @@
                 if (error) throw error;
                 $('chat-input').value = ''; chatFile = null; $('chat-file-info').classList.add('hidden');
                 loadChat();
-            } catch (err) { toast('فشل الإرسال: ' + (err.message || err), 'error'); }
+            } catch (err) { toast('فشل الإرسال: ' + dbError(err), 'error'); }
             btn.disabled = false;
         }
 
