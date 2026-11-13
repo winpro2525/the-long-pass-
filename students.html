@@ -994,6 +994,7 @@
             if (btn) { btn.classList.toggle('liked', myLikes.has(p.id)); btn.querySelector('.heart').textContent = myLikes.has(p.id) ? '❤️' : '🤍'; btn.querySelector('span:last-child').textContent = likesByPost[p.id] || 0; }
             renderPosts();
             if (currentPost && currentPost.id === p.id) updateLikeBtn();
+            loadMeRefresh(); renderRanking();
         }
         function updateLikeBtn() {
             const liked = currentPost && myLikes.has(currentPost.id);
