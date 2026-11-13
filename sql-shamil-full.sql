@@ -494,7 +494,7 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values (
   'gaming-media', 'gaming-media', true,
   52428800, -- 50 ميغابايت
-  array['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm']
+  array['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','application/pdf','application/zip','application/x-rar-compressed','application/x-7z-compressed','text/plain','application/octet-stream']
 )
 on conflict (id) do update
   set public = excluded.public,

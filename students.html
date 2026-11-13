@@ -1001,6 +1001,8 @@
             $('like-btn').querySelector('.heart').textContent = liked ? '❤️' : '🤍';
             $('like-count').textContent = likesByPost[currentPost.id] || 0;
         }
+        // زر الإعجاب داخل نافذة المنشور
+        $('like-btn').addEventListener('click', () => { if (currentPost) toggleLike(currentPost, null); });
 
         // ---------------------------------------------------------- المشاركة
         $('share-btn').addEventListener('click', async () => {
