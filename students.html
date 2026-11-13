@@ -372,6 +372,7 @@
                 <p class="text-[11px] muted text-center">بإنشائك حساباً توافق على احترام الأعضاء الآخرين. تُمنح نقاطاً عند كل نشاط، وترتقي بالمستويات تلقائياً!</p>
             </form>
             <p id="auth-status" class="text-center text-xs font-bold mt-3"></p>
+            <button type="button" id="resend-btn" class="btn btn-soft w-full mt-3 hidden text-xs">📧 إرسال رابط تأكيد البريد</button>
         </div>
     </div>
 
@@ -555,7 +556,41 @@
             setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3800);
         }
 
-        // ترجمة أخطاء قاعدة البيانات/Tخزين إلى رسائل عربية مفهومة
+        // ترجمة أخطاء الحسابات إلى رسائل عربية مفهومة
+        function authError(err) {
+            const c = (err && (err.code || err.error_code)) || '';
+            const m = String((err && err.message) || err || '');
+            if (c === 'email_not_confirmed' || /email not confirmed/i.test(m))
+                return 'لم تؤكّد بريدك بعد — افتح رسالة التأكيد في بريدك (وانظر مجلد Spam)، أو اضغط «إرسال رابط تأكيد البريد»';
+            if (c === 'invalid_credentials' || /invalid login credentials/i.test(m))
+                return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            if (c === 'over_email_send_rate_limit' || /rate limit|too many/i.test(m))
+                return 'محاولات كثيرة — انتظر دقيقة ثم أعد المحاولة';
+            if (c === 'user_already_exists' || /already registered|already been registered/i.test(m))
+                return 'هذا البريد مسجّل مسبقاً — استخدم تبويب «دخول»';
+            if (c === 'weak_password' || /password should be/i.test(m))
+                return 'كلمة المرور ضعيفة — استخدم 6 أحرف على الأقل';
+            if (/invalid email/i.test(m)) return 'صيغة البريد الإلكتروني غير صحيحة';
+            if (/fetch|network|failed to fetch/i.test(m)) return 'تعذّر الاتصال بالخادم — تحقق من الإنترنت';
+            return m;
+        }
+        let lastAuthEmail = '';
+        function authMsg(msg, isError) {
+            const el = $('auth-status');
+            el.className = 'text-center text-xs font-bold mt-3 ' + (isError ? 'text-red-500' : 'accent2');
+            el.textContent = msg;
+        }
+        async function resendConfirmation() {
+            const email = lastAuthEmail || $('l-email').value.trim() || $('u-email').value.trim();
+            if (!email) { authMsg('اكتب بريدك أولاً في الحقل أعلاه', true); $('resend-btn').classList.remove('hidden'); return; }
+            lastAuthEmail = email;
+            const btn = $('resend-btn'); btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+            const { error } = await sb.auth.resend({ type: 'signup', email });
+            btn.disabled = false; btn.textContent = '📧 إرسال رابط تأكيد البريد';
+            if (error) { authMsg('تعذّر الإرسال: ' + authError(error), true); return; }
+            authMsg('✅ أُرسل رابط التأكيد إلى ' + email + ' — افتح الرسالة ثم عد وسجّل الدخول', false);
+        }
+        $('resend-btn').addEventListener('click', resendConfirmation);
         function dbError(err) {
             const m = String((err && err.message) || err || '');
             if (/row-level security|policy|AccessDenied|Unauthorized/i.test(m))
@@ -737,27 +772,40 @@
 
         $('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = $('login-btn'); btn.disabled = true; $('auth-status').textContent = '';
-            const { error } = await sb.auth.signInWithPassword({ email: $('l-email').value.trim(), password: $('l-pass').value });
+            const btn = $('login-btn'); btn.disabled = true; authMsg('');
+            const email = $('l-email').value.trim();
+            const { error } = await sb.auth.signInWithPassword({ email, password: $('l-pass').value });
             btn.disabled = false;
-            if (error) { $('auth-status').className = 'text-center text-xs font-bold mt-3 text-red-500'; $('auth-status').textContent = error.message; return; }
+            if (error) {
+                lastAuthEmail = email;
+                authMsg(authError(error), true);
+                if (/not confirmed|rate limit/i.test(authError(error))) $('resend-btn').classList.remove('hidden');
+                return;
+            }
+            $('resend-btn').classList.add('hidden');
             $('login-form').reset(); closeModal('auth-modal'); toast('أهلاً بعودتك! 🎉', 'ok');
         });
 
         $('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = $('signup-btn'); btn.disabled = true; $('auth-status').textContent = '';
+            const btn = $('signup-btn'); btn.disabled = true; authMsg('');
             const username = $('u-username').value.trim();
-            if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { btn.disabled = false; $('auth-status').textContent = 'اسم المستخدم: 3-20 حرفاً إنجليزياً/أرقام/شرطة سفلية فقط'; return; }
+            if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { btn.disabled = false; authMsg('اسم المستخدم: 3-20 حرفاً إنجليزياً/أرقام/شرطة سفلية فقط', true); return; }
+            const email = $('u-email').value.trim();
+            lastAuthEmail = email;
             const { data, error } = await sb.auth.signUp({
-                email: $('u-email').value.trim(), password: $('u-pass').value,
+                email, password: $('u-pass').value,
                 options: { data: { username, display_name: $('u-display').value.trim() } }
             });
             btn.disabled = false;
-            if (error) { $('auth-status').className = 'text-center text-xs font-bold mt-3 text-red-500'; $('auth-status').textContent = error.message; return; }
+            if (error) { authMsg(authError(error), true); if (/rate limit/i.test(authError(error))) $('resend-btn').classList.remove('hidden'); return; }
             $('signup-form').reset(); closeModal('auth-modal');
             if (data.session) { toast('مرحباً بك في الأكاديمية! 🎉 +2 نقطة دخول', 'ok'); }
-            else { toast('تم إنشاء الحساب! تأكد من بريدك الإلكتروني (رسالة تأكيد) ثم سجّل الدخول.', 'ok'); }
+            else {
+                authMsg('✅ تم إنشاء حسابك! أرسلنا رابط تأكيد إلى ' + email + ' — افتحه ثم سجّل الدخول.', false);
+                $('resend-btn').classList.remove('hidden');
+                toast('تم إنشاء الحساب — أكّد بريدك ثم سجّل الدخول', 'ok');
+            }
         });
 
         $('logout-btn').addEventListener('click', async () => { await sb.auth.signOut(); toast('تم تسجيل الخروج'); });

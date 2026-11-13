@@ -1205,7 +1205,17 @@
             btn.disabled = true; status.textContent = '';
             const { data, error } = await sb.auth.signInWithPassword({ email: $('l-email').value.trim(), password: $('l-pass').value });
             btn.disabled = false;
-            if (error) { status.textContent = 'ACCESS DENIED // ' + error.message; return; }
+            if (error) {
+                const c = error.code || error.error_code || '', m = error.message || '';
+                let msg = m;
+                if (c === 'email_not_confirmed' || /email not confirmed/i.test(m))
+                    msg = 'لم تؤكّد بريدك بعد — افتح رسالة التأكيد في بريدك (أو مجلد Spam) ثم أعد المحاولة';
+                else if (c === 'invalid_credentials' || /invalid login credentials/i.test(m))
+                    msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+                else if (/rate limit|too many/i.test(m)) msg = 'محاولات كثيرة — انتظر دقيقة ثم أعد المحاولة';
+                else if (/failed to fetch|network/i.test(m)) msg = 'تعذّر الاتصال بالخادم — تحقق من الإنترنت';
+                status.textContent = 'ACCESS DENIED // ' + msg; return;
+            }
             if (data.user.email !== CONFIG.adminEmail) { await sb.auth.signOut(); status.textContent = 'ACCESS DENIED // هذا الحساب ليس أدمن'; return; }
             $('login-form').reset(); closeModal('login-modal');
             toast('مرحباً بك أيها القائد', 'ok');
