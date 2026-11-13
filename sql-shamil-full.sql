@@ -56,6 +56,25 @@ create policy "posts_delete_admin" on public.posts
   for delete to authenticated
   using (public.is_admin());
 
+-- ترقية آمنة: أعمدة يحتاجها ملف index.html (تُضاف فقط إن كانت ناقصة)
+alter table public.posts add column if not exists game_name  text;
+alter table public.posts add column if not exists version    text;
+alter table public.posts add column if not exists tags       jsonb not null default '[]'::jsonb;
+alter table public.posts add column if not exists is_featured boolean not null default false;
+alter table public.posts add column if not exists attachments jsonb not null default '[]'::jsonb;
+alter table public.posts add column if not exists downloads  int not null default 0;
+
+-- عدّاد التحميلات للصفحة الرئيسية: يزيد الرقم فقط، دون السماح بتعديل أي حقل آخر
+create or replace function public.increment_downloads(p_id bigint)
+returns void
+language sql security definer
+set search_path = public
+as $$
+  update public.posts set downloads = coalesce(downloads, 0) + 1 where id = p_id;
+$$;
+
+grant execute on function public.increment_downloads(bigint) to anon, authenticated;
+
 -- ------------------------------------------------------------
 -- 1) إعدادات الموقع (معلومات التواصل تُدار من لوحة التحكم)
 -- ------------------------------------------------------------

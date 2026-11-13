@@ -618,7 +618,10 @@
             closeTimers[id] = setTimeout(() => {
                 ov.classList.add('hidden'); ov.classList.remove('flex');
                 openModals.delete(id); if (!openModals.size) document.body.classList.remove('lock');
-                if (id === 'post-modal') $('modal-media').innerHTML = '';
+                if (id === 'post-modal') {
+                    $('modal-media').innerHTML = '';
+                    if (location.hash.startsWith('#post-')) history.replaceState(null, '', location.pathname + location.search);
+                }
             }, 240);
         }
         document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
@@ -697,7 +700,12 @@
             me = await loadProfile(session.user.id);
             if (me && me.is_banned) { await sb.auth.signOut(); me = null; toast('حسابك محظور حالياً. تواصل مع الإدارة.', 'error'); }
             renderProfile();
-            if (me) { sb.rpc('claim_daily_visit').then(() => { if (!isAdmin) loadMeRefresh(); }); }
+            if (me && !me.is_banned) {
+                sb.rpc('claim_daily_visit').then(async () => {
+                    if (!isAdmin) await loadMeRefresh();
+                    renderRanking();
+                }).catch(() => {});
+            }
         }
         async function loadMeRefresh() { if (session) { const d = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle(); if (d.data) { me = d.data; renderProfile(); } } }
 
@@ -810,7 +818,7 @@
                 $('award-user').textContent = award.profiles ? (award.profiles.display_name || award.profiles.username) : '';
                 $('award-note').textContent = (award.week_label ? award.week_label + ' · ' : '') + (award.note || '');
             }
-            renderProfile(); renderPosts(); renderRanking();
+            renderProfile(); if (!p.error) renderPosts(); renderRanking();
             const m = location.hash.match(/^#post-(\d+)$/);
             if (m) { const p = posts.find(x => String(x.id) === m[1]); if (p) openPost(p); }
             if (isAdmin) renderAdminLists();
@@ -872,7 +880,7 @@
                 if (!error) { myLikes.delete(p.id); likesByPost[p.id] = Math.max(0, (likesByPost[p.id] || 1) - 1); }
             } else {
                 const { error } = await sb.from('post_likes').insert({ post_id: p.id, user_id: session.user.id });
-                if (error) { toast(error.message.includes('banned') ? 'حسابك محظور' : 'تعذّر الإعجاب', 'error'); return; }
+                if (error) { toast('تعذّر الإعجاب: ' + dbError(error), 'error'); return; }
                 myLikes.add(p.id); likesByPost[p.id] = (likesByPost[p.id] || 0) + 1;
                 toast('❤️ +1 نقطة! إعجابك سُجّل', 'ok');
             }
@@ -1073,7 +1081,7 @@
         $('chat-send').addEventListener('click', sendChat);
         $('chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } });
         async function sendChat() {
-            if (!session || !me) return;
+            if (!session || !me) { toast('سجّل الدخول أولاً للمشاركة في الدردشة', 'error'); return; }
             const content = $('chat-input').value.trim();
             if (!content && !chatFile) return;
             const btn = $('chat-send'); btn.disabled = true;
@@ -1399,10 +1407,15 @@
             const mins = rows.map(r => r.min_points);
             if (new Set(mins).size !== mins.length) { toast('يوجد مستويان بنفس الحد الأدنى — اجعل كل حد مختلفاً', 'error'); return; }
             // إعادة بناء الجدول: حذف ثم إدراج (الأسماء والحدود فقط)
+            const backup = levels.map(l => ({ min_points: l.min_points, name: l.name, icon: l.icon }));
             const del = await sb.from('levels').delete().neq('min_points', -1);
             if (del.error) { $('levels-status').textContent = 'فشل الحذف: ' + del.error.message; return; }
             const ins = await sb.from('levels').insert(rows);
-            if (ins.error) { $('levels-status').textContent = 'فشل الإدراج: ' + ins.error.message; return; }
+            if (ins.error) {
+                if (backup.length) await sb.from('levels').insert(backup);
+                $('levels-status').textContent = 'فشل الحفظ: ' + ins.error.message + ' — أُعيدت المستويات السابقة';
+                return;
+            }
             $('levels-status').textContent = '✅ تم حفظ المستويات';
             toast('تم حفظ المستويات', 'ok'); await fetchAll();
         });
