@@ -1,0 +1,35 @@
+{
+  "name": "THE LONG PASS | التمريرة الطويلة",
+  "short_name": "LONG PASS",
+  "description": "أخبار وشروحات وملفات ألعاب العالم المفتوح والساندبوكس والشوتر — ومنطقة الطلاب بالنقاط والمستويات.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "/the-long-pass-/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#090b0e",
+  "theme_color": "#090b0e",
+  "categories": ["games", "news", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "منطقة الطلاب",
+      "short_name": "الطلاب",
+      "url": "./students.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "آخر المنشورات",
+      "short_name": "المنشورات",
+      "url": "./index.html#feed",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لا يوجد اتصال | THE LONG PASS</title>
+<meta name="theme-color" content="#090b0e">
+<link rel="icon" href="icons/favicon-32.png">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;
+       font-family:'Cairo',system-ui,-apple-system,'Segoe UI',sans-serif;
+       background:radial-gradient(circle at 50% 0%,#121a26 0%,#090b0e 70%);color:#e2e8f0;text-align:center}
+  .card{max-width:420px;padding:36px 28px;background:#11151c;border:1px solid rgba(255,255,255,.09);
+        clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
+  h1{margin:0 0 6px;font-size:1.5rem}
+  .sub{color:#00f0ff;font-size:.72rem;letter-spacing:.3em;margin-bottom:18px}
+  p{color:#94a3b8;line-height:1.8;font-size:.95rem;margin:0 0 22px}
+  button{font:inherit;font-weight:800;padding:12px 26px;border:0;cursor:pointer;background:#ff5500;color:#000;
+         clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+  .ico{font-size:3rem;margin-bottom:10px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="ico">📡</div>
+    <div class="sub">// OFFLINE</div>
+    <h1>لا يوجد اتصال بالإنترنت</h1>
+    <p>أنت تستعرض التطبيق بدون شبكة. أعد الاتصال ثم اضغط «إعادة المحاولة» لتظهر لك آخر المنشورات.</p>
+    <button onclick="location.reload()">🔄 إعادة المحاولة</button>
+  </div>
+</body>
+</html>

@@ -6,6 +6,14 @@
     <title>THE LONG PASS | التمريرة الطويلة</title>
     <meta name="description" content="THE LONG PASS: أخبار الألعاب المفتوحة والساندبوكس والشوتر التكتيكي، مودات وملفات للتحميل وتسريبات.">
     <meta name="theme-color" content="#090b0e">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LONG PASS">
+
     <script>
         // تطبيق الثيم المحفوظ قبل رسم الصفحة لتجنب الوميض
         (function () {
@@ -1398,6 +1406,68 @@
             loadSiteSettings();
             const { data } = await sb.auth.getSession(); updateAdminState(data.session);
             fetchPosts();
+        })();
+    </script>
+
+    <!-- ======================= تثبيت التطبيق (PWA) ======================= -->
+    <style>
+        #pwa-install { position: fixed; bottom: 18px; right: 18px; z-index: 90;
+            display: inline-flex; align-items: center; gap: .5rem; font-weight: 800; font-size: .82rem;
+            padding: .7rem 1.1rem; border: 0; cursor: pointer; background: var(--accent2, #00f0ff); color: #000;
+            clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+            box-shadow: 0 12px 30px -10px rgba(0,240,255,.55); transition: transform .2s, filter .2s; }
+        #pwa-install:hover { transform: translateY(-2px); filter: brightness(1.08); }
+        #pwa-install[hidden] { display: none; }
+        #pwa-tip { position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,.82); backdrop-filter: blur(6px);
+            display: grid; place-items: center; padding: 20px; }
+        #pwa-tip[hidden] { display: none; }
+        #pwa-tip .box { max-width: 340px; background: #11151c; color: #e2e8f0; padding: 24px; text-align: center;
+            border: 1px solid rgba(255,255,255,.12); clip-path: polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px)); }
+        #pwa-tip h3 { margin: 0 0 10px; font-size: 1.05rem; }
+        #pwa-tip p { margin: 0 0 16px; font-size: .85rem; line-height: 1.8; color: #94a3b8; }
+        #pwa-tip button { font: inherit; font-weight: 800; padding: .55rem 1.2rem; border: 0; cursor: pointer;
+            background: #ff5500; color: #000; }
+    </style>
+    <button id="pwa-install" type="button" hidden>📲 ثبّت التطبيق</button>
+    <div id="pwa-tip" hidden><div class="box">
+        <h3>📲 تثبيت التطبيق على iPhone</h3>
+        <p>اضغط زر <b>المشاركة</b> في متصفح Safari، ثم اختر<br><b>«إضافة إلى الشاشة الرئيسية»</b>.</p>
+        <button type="button" id="pwa-tip-close">فهمت</button>
+    </div></div>
+    <script>
+        (function () {
+            if (!('serviceWorker' in navigator)) return;
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {});
+            });
+
+            var btn = document.getElementById('pwa-install');
+            var tip = document.getElementById('pwa-tip');
+            var deferred = null;
+            var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+            window.addEventListener('beforeinstallprompt', function (e) {
+                e.preventDefault(); deferred = e; if (!standalone) btn.hidden = false;
+            });
+
+            btn.addEventListener('click', async function () {
+                if (deferred) {
+                    deferred.prompt();
+                    var choice = await deferred.userChoice.catch(function () { return {}; });
+                    if (choice && choice.outcome === 'accepted') btn.hidden = true;
+                    deferred = null;
+                    return;
+                }
+                tip.hidden = false;
+            });
+
+            document.getElementById('pwa-tip-close').addEventListener('click', function () { tip.hidden = true; });
+
+            if (isIOS && !standalone) {
+                setTimeout(function () { btn.hidden = false; }, 1200);
+            }
+            window.addEventListener('appinstalled', function () { btn.hidden = true; });
         })();
     </script>
 </body>
