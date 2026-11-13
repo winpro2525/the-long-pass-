@@ -566,6 +566,8 @@
                 return 'محاولات كثيرة — انتظر بضع دقائق ثم أعد المحاولة';
             if (/duplicate key/i.test(m))
                 return 'هذا الاسم مستخدم مسبقاً — اختر اسماً آخر';
+            return m;
+        }
         // مؤقت أمان: أي رفع لا يستغرق أكثر من 60 ثانية
         function withTimeout(p, ms, msg) {
             return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
