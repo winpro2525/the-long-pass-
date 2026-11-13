@@ -1050,7 +1050,12 @@
                 a.className = 'btn btn-primary btn-sm'; a.textContent = '⬇ تحميل';
                 a.addEventListener('click', () => {
                     try { if (sessionStorage.getItem('tlp-sdl-' + p.id)) return; sessionStorage.setItem('tlp-sdl-' + p.id, '1'); } catch {}
-                    sb.from('student_posts').update({ downloads: (p.downloads || 0) + 1 }).eq('id', p.id).then(() => { p.downloads = (p.downloads || 0) + 1; });
+                    sb.from('student_posts').update({ downloads: (p.downloads || 0) + 1 }).eq('id', p.id).then(({ error }) => {
+                        if (error) return;
+                        p.downloads = (p.downloads || 0) + 1;
+                        $('modal-meta').innerHTML = '<span class="chip">📅 ' + new Date(p.created_at).toLocaleDateString('ar-DZ') + '</span>' +
+                            (p.attachments.length ? '<span class="chip">⬇ ' + p.downloads + ' تحميل</span>' : '');
+                    });
                 });
                 row.appendChild(a); filesBox.appendChild(row);
             });
