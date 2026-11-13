@@ -901,7 +901,10 @@
         });
 
         // ---------------------------------------------------------- المنشورات
+        let fetching = false;
         async function fetchAll() {
+            if (fetching) return; fetching = true;
+            try {
             const [p, l, lk, aw] = await Promise.all([
                 sb.from('student_posts').select('*').order('created_at', { ascending: false }),
                 sb.from('levels').select('*').order('min_points'),
@@ -926,8 +929,8 @@
             const m = location.hash.match(/^#post-(\d+)$/);
             if (m) { const p = posts.find(x => String(x.id) === m[1]); if (p) openPost(p); }
             if (isAdmin) renderAdminLists();
+            } finally { fetching = false; }
         }
-
         function cardMedia(p) {
             const img = safeUrl(p.image_url);
             const sec = SECTIONS[p.section] || {};
@@ -1533,13 +1536,17 @@
         });
 
         // ---------------------------------------------------------- بدء التشغيل
+        // نستخدم onAuthStateChange وحده (يعطي INITIAL_SESSION مرة واحدة) لتجنّب
+        // تشغيل التهيئة مرتين وتحديثين متزامنين للتوكن بسبب تعليق الطلبات.
         (async function init() {
             $('year').textContent = new Date().getFullYear();
-            const { data } = await sb.auth.getSession();
-            session = data.session;
-            await refreshMe(); updateAuthUI(); await fetchAll();
-            sb.auth.onAuthStateChange(async (_e, s) => {
+            let first = true;
+            sb.auth.onAuthStateChange(async (evt, s) => {
+                const prevId = session && session.user ? session.user.id : null;
+                const nextId = s && s.user ? s.user.id : null;
                 session = s;
+                if (!first && evt === 'TOKEN_REFRESHED' && prevId === nextId) return;
+                first = false;
                 await refreshMe(); updateAuthUI(); await fetchAll();
             });
         })();
