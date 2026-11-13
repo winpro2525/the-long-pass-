@@ -613,21 +613,24 @@
         function withTimeout(p, ms, msg) {
             return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
         }
-        // ضغط الصور تلقائياً قبل الرفع (سرعة أكبر + توفير مساحة الموقع)
+        // ضغط الصور: محمي بمهلة — إن تعثّر الضغط نرفع الملف الأصلي كما هو (مثل الصفحة الرئيسية)
         async function compressImage(file, maxDim, quality) {
             if (!file.type || !file.type.startsWith('image/') || file.type === 'image/gif') return file;
             try {
-                const img = await createImageBitmap(file);
-                const scale = Math.min(1, (maxDim || 512) / Math.max(img.width, img.height));
-                if (scale === 1 && file.size < 400 * 1024) return file;
-                const canvas = document.createElement('canvas');
-                canvas.width = Math.max(1, Math.round(img.width * scale));
-                canvas.height = Math.max(1, Math.round(img.height * scale));
-                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality || 0.85));
-                if (!blob || blob.size >= file.size) return file;
-                return new File([blob], (file.name.replace(/\.[^.]+$/, '') || 'image') + '.jpg', { type: 'image/jpeg' });
+                return await withTimeout(_compress(file, maxDim, quality), 8000, 'COMPRESS_TIMEOUT');
             } catch { return file; }
+        }
+        async function _compress(file, maxDim, quality) {
+            const img = await createImageBitmap(file);
+            const scale = Math.min(1, (maxDim || 512) / Math.max(img.width, img.height));
+            if (scale === 1 && file.size < 300 * 1024) return file;
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality || 0.85));
+            if (!blob || blob.size >= file.size) return file;
+            return new File([blob], (file.name.replace(/\.[^.]+$/, '') || 'image') + '.jpg', { type: 'image/jpeg' });
         }
 
         // رفع ملف إلى مخزن الطلاب: يعيد بيانات المرفق، ويطلق استثناءً عند الفشل
@@ -849,6 +852,11 @@
             e.preventDefault();
             if (!me) { toast('انتهت الجلسة — سجّل الدخول من جديد', 'error'); openModal('auth-modal'); return; }
             const btn = $('pf-save'); btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
+            // حارس عام: الزر لا يبقى معلقاً أبداً
+            const watchdog = setTimeout(() => {
+                btn.disabled = false; btn.textContent = 'حفظ التغييرات';
+                toast('استغرقت العملية وقتاً طويلاً — تحقق من اتصالك ثم أعد المحاولة', 'error');
+            }, 95000);
             const display = $('pf-display').value.trim(), username = $('pf-username').value.trim();
             const f = $('pf-avatar').files[0];
             let note = '';
@@ -888,6 +896,7 @@
                 renderProfile(); closeModal('profile-modal');
                 toast('تم تحديث ملفك الشخصي' + note, 'ok');
             } catch (err) { toast('فشل الحفظ: ' + dbError(err), 'error'); }
+            clearTimeout(watchdog);
             btn.disabled = false; btn.textContent = 'حفظ التغييرات';
         });
 
