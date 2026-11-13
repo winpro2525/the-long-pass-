@@ -445,20 +445,20 @@ create policy "smedia_insert_own" on storage.objects
   for insert to authenticated
   with check (
     bucket_id = 'student-media'
-    and (storage.foldername(name))[1] in ('avatars', 'attachments')
-    and (storage.foldername(name))[2] = auth.uid()::text
+    and name ~ ('^(avatars|attachments)/')
+    and name ~ ('^[a-z]+/' || auth.uid()::text || '(/|_)')
   );
 
 create policy "smedia_update_own" on storage.objects
   for update to authenticated
   using (
     bucket_id = 'student-media'
-    and (storage.foldername(name))[1] in ('avatars', 'attachments')
-    and (storage.foldername(name))[2] = auth.uid()::text
+    and name ~ ('^(avatars|attachments)/')
+    and name ~ ('^[a-z]+/' || auth.uid()::text || '(/|_)')
   ) with check (
     bucket_id = 'student-media'
-    and (storage.foldername(name))[1] in ('avatars', 'attachments')
-    and (storage.foldername(name))[2] = auth.uid()::text
+    and name ~ ('^(avatars|attachments)/')
+    and name ~ ('^[a-z]+/' || auth.uid()::text || '(/|_)')
   );
 
 -- الحذف: المالك أو الأدمن
@@ -467,8 +467,8 @@ create policy "smedia_delete_rules" on storage.objects
   using (
     bucket_id = 'student-media'
     and (
-      (storage.foldername(name))[1] in ('avatars', 'attachments')
-      and (storage.foldername(name))[2] = auth.uid()::text
+      name ~ ('^(avatars|attachments)/')
+      and name ~ ('^[a-z]+/' || auth.uid()::text || '(/|_)')
       or public.is_admin()
     )
   );
