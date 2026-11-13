@@ -260,12 +260,13 @@
                     <div class="flex-1">
                         <textarea id="chat-input" rows="1" class="field resize-none" placeholder="اكتب رسالتك..." maxlength="500"></textarea>
                     </div>
-                    <button type="button" id="chat-attach" class="btn btn-soft btn-sm" title="إرفاق صورة أو PDF (3MB كحد أقصى)">📎</button>
+                    <button type="button" id="chat-attach" class="btn btn-soft btn-sm" title="إرفاق صورة أو PDF (5MB كحد أقصى)">📎</button>
+                    <button type="button" id="chat-mic" class="btn btn-soft btn-sm" title="تسجيل رسالة صوتية">🎤</button>
                     <input type="file" id="chat-file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" class="hidden">
                     <button type="button" id="chat-send" class="btn btn-primary btn-sm font-tech">SEND</button>
                 </div>
                 <div id="chat-file-info" class="text-xs accent2 mt-2 hidden"></div>
-                <p class="text-[10px] muted mt-2">📎 يُسمح بالصور و PDF فقط — بحد 3 ميغابايت للحفاظ على مساحة الموقع.</p>
+                <p class="text-[10px] muted mt-2">📎 يُسمح بالصور و PDF فقط — بحد 5 ميغابايت · 🎤 رسالة صوتية حتى 60 ثانية.</p>
             </div>
         </div>
     </section>
@@ -1110,9 +1111,11 @@
         function attachmentLine(att, bucket) {
             const url = sb.storage.from(bucket).getPublicUrl(att.path).data.publicUrl;
             const isImg = (att.type || '').startsWith('image/');
+            const isAudio = (att.type || '').startsWith('audio/');
             return '<div class="mt-2 border p-2 inline-flex items-center gap-2" style="border-color: var(--border)">' +
                 (isImg ? '<img src="' + esc(url) + '" alt="" class="max-h-32 cursor-pointer" onclick="window.open(\'' + url.replace(/'/g, '') + '\',\'_blank\')">' : '') +
-                '<a href="' + esc(url) + '" target="_blank" rel="noopener" class="text-xs accent2 font-bold">' + fileIcon(att.name) + ' ' + esc(att.name) + ' (' + fmtSize(att.size) + ')</a></div>';
+                (isAudio ? '<audio controls preload="metadata" src="' + esc(url) + '" style="height:34px;max-width:230px"></audio>' : '') +
+                '<a href="' + esc(url) + '" target="_blank" rel="noopener" class="text-xs accent2 font-bold">' + (isAudio ? '🎤 ' : fileIcon(att.name) + ' ') + esc(isAudio ? 'صوتية' : att.name) + ' (' + fmtSize(att.size) + ')</a></div>';
         }
         window.attachmentLine = attachmentLine;
 
@@ -1186,11 +1189,79 @@
         }
 
         $('chat-attach').addEventListener('click', () => $('chat-file').click());
+
+        // ======================= التعليقات الصوتية =======================
+        const REC_MAX_MS = 60000; // 60 ثانية
+        const recMime = (() => {
+            const cands = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+            if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+            for (const m of cands) { try { if (MediaRecorder.isTypeSupported(m)) return m; } catch {} }
+            return '';
+        })();
+        let recorder = null, recChunks = [], recTicker = null, recStartAt = 0, recStream = null;
+
+        function recUI(on, label) {
+            const b = $('chat-mic');
+            b.textContent = on ? '⏹' : '🎤';
+            b.classList.toggle('btn-primary', on);
+            b.classList.toggle('btn-soft', !on);
+            if (label) { $('chat-file-info').textContent = label; $('chat-file-info').classList.remove('hidden'); }
+        }
+        function stopRecording() {
+            try { if (recorder && recorder.state !== 'inactive') recorder.stop(); } catch {}
+            clearInterval(recTicker); recTicker = null;
+        }
+
+        $('chat-mic').addEventListener('click', async () => {
+            if (!session || !me) { toast('سجّل الدخول أولاً للتسجيل', 'error'); openModal('auth-modal'); return; }
+            if (!window.MediaRecorder || !navigator.mediaDevices) {
+                toast('متصفحك لا يدعم التسجيل الصوتي — جرّب Chrome', 'error'); return;
+            }
+            if (recorder && recorder.state === 'recording') { stopRecording(); return; }
+            try {
+                recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                toast('تعذّر الوصول للميكروفون — اسمح بالإذن من المتصفح', 'error'); return;
+            }
+            recChunks = [];
+            try {
+                recorder = new MediaRecorder(recStream, recMime ? { mimeType: recMime } : undefined);
+            } catch {
+                try { recorder = new MediaRecorder(recStream); } catch { toast('تعذّر بدء التسجيل', 'error'); return; }
+            }
+            recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) recChunks.push(ev.data); };
+            recorder.onstop = async () => {
+                try { recStream.getTracks().forEach(t => t.stop()); } catch {}
+                const rawType = (recorder && recorder.mimeType) || recMime || 'audio/webm';
+                const type = rawType.split(';')[0];
+                const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+                const blob = new Blob(recChunks, { type });
+                const secs = Math.max(1, Math.round((Date.now() - recStartAt) / 1000));
+                recUI(false, '');
+                $('chat-file-info').classList.add('hidden');
+                if (blob.size < 800) { toast('التسجيل قصير جداً — حاول مرة أخرى', 'error'); return; }
+                if (blob.size > 4.5 * 1024 * 1024) { toast('التسجيل كبير جداً — اجعله أقصر', 'error'); return; }
+                chatFile = new File([blob], 'voice_' + Date.now() + '.' + ext, { type });
+                const kb = (blob.size / 1024).toFixed(0);
+                $('chat-file-info').innerHTML = '🎤 رسالة صوتية جاهزة (' + secs + 'ث · ' + kb + 'KB) — اضغط SEND للإرسال';
+                $('chat-file-info').classList.remove('hidden');
+                toast('🎤 التسجيل جاهز — اضغط SEND', 'ok');
+            };
+            recStartAt = Date.now();
+            recorder.start();
+            recUI(true, '⏺ جاري التسجيل... 0s');
+            recTicker = setInterval(() => {
+                const s = Math.floor((Date.now() - recStartAt) / 1000);
+                $('chat-file-info').textContent = '⏺ جاري التسجيل... ' + s + 's (الحد 60s) — اضغط ⏹ للإيقاف';
+                if (s >= 60) stopRecording();
+            }, 500);
+        });
         $('chat-file').addEventListener('change', () => {
             const f = $('chat-file').files[0]; $('chat-file').value = '';
             if (!f) return;
-            if (f.size > CONFIG.maxStudentFile) { toast('الملف أكبر من 3 ميغابايت', 'error'); return; }
-            if (!['image/jpeg','image/png','image/webp','image/gif','application/pdf'].includes(f.type)) { toast('يُسمح بالصور و PDF فقط', 'error'); return; }
+            if (f.size > 4624220) { toast('الملف أكبر من 4.4 ميغابايت', 'error'); return; }
+            const okTypes = ['image/jpeg','image/png','image/webp','image/gif','application/pdf','audio/webm','audio/mp4','audio/ogg','audio/mpeg','audio/aac','audio/wav','audio/x-m4a'];
+            if (!okTypes.includes(f.type)) { toast('يُسمح بالصور و PDF والصوت فقط', 'error'); return; }
             chatFile = f; $('chat-file-info').textContent = '📎 ' + f.name + ' (' + fmtSize(f.size) + ')'; $('chat-file-info').classList.remove('hidden');
         });
         $('chat-send').addEventListener('click', sendChat);
