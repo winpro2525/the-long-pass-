@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE LONG PASS | التمريرة الطويلة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-orange: #ff5500;
+            --neon-cyan: #00f0ff;
+            --bg-dark: #090b0e;
+            --panel-bg: #11151c;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 0%, #1a2230 0%, #090b0e 70%);
+            overflow-x: hidden;
+        }
+        .font-tech { font-family: 'Orbitron', sans-serif; }
+
+        /* زوايا مشطوفة بأسلوب ألعاب الشوتر والباتل رويال */
+        .tactical-card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .tactical-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--neon-orange);
+            box-shadow: 0 10px 30px -10px rgba(255, 85, 0, 0.3);
+        }
+        /* النوافذ المنبثقة لا ترتفع عند المرور بالماوس */
+        .modal-box:hover { transform: none; box-shadow: none; }
+
+        .tactical-btn {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.2s ease;
+        }
+
+        /* أزرار الأقسام */
+        .cat-btn { background: rgba(255,255,255,0.05); color: #cbd5e1; font-weight: 700; padding: 6px 16px; font-size: 14px; white-space: nowrap; }
+        .cat-btn:hover { background: rgba(255,255,255,0.1); }
+        .cat-btn.active { background: var(--neon-orange); color: #000; }
+
+        .no-scrollbar { scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* أنيميشن فتح وغلق النوافذ */
+        @keyframes hudOpen {
+            0%   { opacity: 0; transform: scaleX(0.1) scaleY(0.02); filter: brightness(3) drop-shadow(0 0 20px var(--neon-cyan)); }
+            50%  { opacity: 1; transform: scaleX(1.02) scaleY(0.05); filter: brightness(1.8); }
+            100% { opacity: 1; transform: scaleX(1) scaleY(1); filter: brightness(1); }
+        }
+        @keyframes hudClose {
+            0%   { opacity: 1; transform: scaleX(1) scaleY(1); }
+            50%  { opacity: 0.8; transform: scaleX(1.05) scaleY(0.03); filter: brightness(2.5); }
+            100% { opacity: 0; transform: scaleX(0) scaleY(0); }
+        }
+        .modal-enter { animation: hudOpen 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .modal-exit  { animation: hudClose 0.25s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
+
+        /* شريط التمرير التكتيكي */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #090b0e; }
+        ::-webkit-scrollbar-thumb { background: #ff5500; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- الشريط العلوي -->
+    <header class="border-b border-white/10 bg-[#090b0e]/90 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-8 bg-[#ff5500] skew-x-[-15deg]"></div>
+                <div>
+                    <h1 class="font-tech text-2xl md:text-3xl font-black tracking-wider text-white">
+                        THE LONG <span class="text-[#ff5500]">PASS</span>
+                    </h1>
+                    <p class="text-[11px] text-cyan-400 tracking-widest font-semibold">OPEN WORLD // SANDBOX // TACTICAL SHOOTER</p>
+                </div>
+            </div>
+
+            <button id="admin-btn" type="button" class="text-xs font-tech text-slate-500 hover:text-[#ff5500] border border-white/10 px-3 py-1.5 tactical-btn transition">
+                [ SYS_ADMIN ]
+            </button>
+        </div>
+
+        <!-- شريط الأقسام -->
+        <nav id="cat-nav" class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+            <button type="button" data-cat="ALL" class="cat-btn tactical-btn active">الكل</button>
+            <button type="button" data-cat="OPEN_WORLD" class="cat-btn tactical-btn">عالم مفتوح</button>
+            <button type="button" data-cat="SANDBOX" class="cat-btn tactical-btn">ساندبوكس</button>
+            <button type="button" data-cat="SHOOTER" class="cat-btn tactical-btn">شوتر تكتيكي</button>
+            <button type="button" data-cat="LOADOUTS" class="cat-btn tactical-btn">مختبر الأسلحة</button>
+            <button type="button" data-cat="MODS" class="cat-btn tactical-btn">مودات وإضافات</button>
+            <button type="button" data-cat="LEAKS" class="cat-btn tactical-btn">تسريبات وأسرار</button>
+        </nav>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
+        <div id="loader" class="text-center py-20 font-tech text-cyan-400 animate-pulse tracking-widest">
+            INITIALIZING TACTICAL FEED...
+        </div>
+        <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
+
+    <!-- نافذة عرض الخبر -->
+    <div id="post-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div id="post-modal-box" class="modal-box bg-[#11151c] border border-[#ff5500] max-w-3xl w-full max-h-[90vh] overflow-y-auto tactical-card p-6 relative">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+                <span id="modal-cat" class="font-tech text-xs bg-[#ff5500]/20 text-[#ff5500] px-2.5 py-1 border border-[#ff5500]/40">CATEGORY</span>
+                <button type="button" data-close="post-modal" class="font-tech text-sm bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 tactical-btn">
+                    ✕ إغلاق [ESC]
+                </button>
+            </div>
+            <h2 id="modal-title" class="text-2xl font-bold text-white mb-4"></h2>
+            <div id="modal-media" class="mb-4 rounded overflow-hidden bg-black"></div>
+            <p id="modal-content" class="text-slate-300 leading-relaxed whitespace-pre-line mb-6"></p>
+            <div class="flex flex-wrap items-center gap-3">
+                <div id="modal-link-box"></div>
+                <button type="button" id="delete-btn" class="hidden font-tech text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2.5 tactical-btn">
+                    حذف المنشور // DELETE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل دخول الأدمن -->
+    <div id="login-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div id="login-modal-box" class="modal-box bg-[#11151c] border border-cyan-400 max-w-md w-full tactical-card p-6">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-5">
+                <h2 class="font-tech text-lg text-cyan-400 font-bold">// ACCESS CONTROL</h2>
+                <button type="button" data-close="login-modal" class="font-tech text-xs bg-white/10 hover:bg-red-600 text-white px-3 py-1.5 tactical-btn">إغلاق</button>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">البريد الإلكتروني</label>
+                    <input type="email" id="l-email" required autocomplete="username" dir="ltr" class="w-full bg-black/50 border border-white/15 focus:border-cyan-400 p-2.5 text-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">كلمة المرور</label>
+                    <input type="password" id="l-pass" required autocomplete="current-password" dir="ltr" class="w-full bg-black/50 border border-white/15 focus:border-cyan-400 p-2.5 text-white outline-none">
+                </div>
+                <button type="submit" id="login-btn" class="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-3 tactical-btn font-tech tracking-wider">
+                    LOGIN // دخول
+                </button>
+                <p id="login-status" class="text-center text-xs text-red-400 font-tech"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة لوحة النشر -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div id="admin-modal-box" class="modal-box bg-[#11151c] border border-cyan-400 max-w-2xl w-full max-h-[90vh] overflow-y-auto tactical-card p-6">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-5">
+                <h2 class="font-tech text-lg text-cyan-400 font-bold">// COMMAND CENTER - لوحة النشر</h2>
+                <div class="flex gap-2">
+                    <button type="button" id="logout-btn" class="font-tech text-xs bg-white/10 hover:bg-orange-600 text-white px-3 py-1.5 tactical-btn">خروج</button>
+                    <button type="button" data-close="admin-modal" class="font-tech text-xs bg-white/10 hover:bg-red-600 text-white px-3 py-1.5 tactical-btn">إغلاق</button>
+                </div>
+            </div>
+
+            <form id="publish-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">عنوان الخبر أو الموضوع *</label>
+                    <input type="text" id="p-title" required maxlength="200" class="w-full bg-black/50 border border-white/15 focus:border-cyan-400 p-2.5 text-white outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">القسم *</label>
+                    <select id="p-category" class="w-full bg-black/80 border border-white/15 focus:border-cyan-400 p-2.5 text-white outline-none">
+                        <option value="OPEN_WORLD">عالم مفتوح (Open World)</option>
+                        <option value="SANDBOX">ساندبوكس (Sandbox)</option>
+                        <option value="SHOOTER">شوتر تكتيكي (Shooter)</option>
+                        <option value="LOADOUTS">مختبر الأسلحة والعتاد (Loadouts)</option>
+                        <option value="MODS">مودات وإضافات (Mods)</option>
+                        <option value="LEAKS">تسريبات وأسرار (Leaks)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">صورة عالية الدقة (اختياري)</label>
+                        <input type="file" id="p-image" accept="image/jpeg,image/png,image/webp,image/gif" class="w-full text-xs text-slate-300 bg-black/50 border border-white/15 p-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">فيديو قصير MP4 (اختياري)</label>
+                        <input type="file" id="p-video" accept="video/mp4,video/webm" class="w-full text-xs text-slate-300 bg-black/50 border border-white/15 p-2">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">تفاصيل الخبر أو الشرح *</label>
+                    <textarea id="p-content" rows="4" required class="w-full bg-black/50 border border-white/15 focus:border-cyan-400 p-2.5 text-white outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">رابط خارجي (تحميل مود / مصدر / فيديو يوتيوب)</label>
+                    <input type="url" id="p-link" placeholder="https://..." dir="ltr" class="w-full bg-black/50 border border-white/15 focus:border-cyan-400 p-2.5 text-white outline-none">
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full bg-[#ff5500] hover:bg-[#ff6a00] disabled:opacity-50 text-black font-bold py-3 tactical-btn font-tech tracking-wider">
+                    DEPLOY POST // نشر الآن
+                </button>
+                <p id="upload-status" class="text-center text-xs text-cyan-400 font-tech"></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // الإعدادات: عدّل هذه القيم الأربع فقط
+        // ==========================================
+        const SUPABASE_URL      = 'https://YOUR-PROJECT-ID.supabase.co';   // من Project Settings > API
+        const SUPABASE_ANON_KEY = 'ضع_مفتاح_ANON_PUBLIC_هنا';              // مفتاح anon public
+        const ADMIN_EMAIL       = 'winprowink@gmail.com';                      // نفس الإيميل المكتوب في سياسات SQL
+        const BUCKET            = 'gaming-media';
+        const MAX_FILE_SIZE     = 50 * 1024 * 1024; // 50MB (نفس حد المخزن)
+
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let allPosts = [];
+        let currentPost = null;
+        let isAdmin = false;
+
+        const categoryNames = {
+            'OPEN_WORLD': 'عالم مفتوح',
+            'SANDBOX': 'ساندبوكس',
+            'SHOOTER': 'شوتر تكتيكي',
+            'LOADOUTS': 'مختبر الأسلحة',
+            'MODS': 'مودات وإضافات',
+            'LEAKS': 'تسريبات وأسرار'
+        };
+
+        const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="100%" height="100%" fill="#0d1117"/><text x="50%" y="50%" fill="#ff5500" font-family="monospace" font-size="28" text-anchor="middle">NO SIGNAL</text></svg>'
+        );
+
+        // ---------- دوال مساعدة للأمان ----------
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+        function safeUrl(u) {
+            try {
+                const url = new URL(u);
+                return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : null;
+            } catch { return null; }
+        }
+        function storagePathFromUrl(url) {
+            if (!url) return null;
+            const marker = `/${BUCKET}/`;
+            const i = url.indexOf(marker);
+            return i === -1 ? null : decodeURIComponent(url.substring(i + marker.length));
+        }
+
+        // ---------- جلب وعرض المنشورات ----------
+        async function fetchPosts() {
+            const loader = document.getElementById('loader');
+            const grid = document.getElementById('posts-grid');
+            const { data, error } = await sb.from('posts').select('*').order('created_at', { ascending: false });
+            loader.style.display = 'none';
+            if (error) {
+                console.error(error);
+                grid.innerHTML = `<p class="text-red-500 col-span-full text-center">خطأ في الاتصال بقاعدة البيانات. تأكد من رابط المشروع ومفتاح API.</p>`;
+                return;
+            }
+            allPosts = data || [];
+            const active = document.querySelector('.cat-btn.active');
+            applyFilter(active ? active.dataset.cat : 'ALL');
+        }
+
+        function renderPosts(posts) {
+            const grid = document.getElementById('posts-grid');
+            grid.innerHTML = '';
+            if (posts.length === 0) {
+                grid.innerHTML = `<p class="text-slate-500 col-span-full text-center py-12">لا توجد منشورات في هذا القسم حالياً.</p>`;
+                return;
+            }
+
+            posts.forEach(post => {
+                const mediaBadge = post.video_url
+                    ? `<span class="absolute top-3 left-3 bg-cyan-500 text-black text-[10px] font-tech font-bold px-2 py-0.5">▶ VIDEO</span>` : '';
+                const imgSrc = safeUrl(post.image_url) || PLACEHOLDER_IMG;
+
+                const card = document.createElement('div');
+                card.className = 'tactical-card cursor-pointer flex flex-col justify-between group';
+                card.onclick = () => openPostModal(post);
+                card.innerHTML = `
+                    <div>
+                        <div class="relative h-48 overflow-hidden bg-black">
+                            <img src="${escapeHtml(imgSrc)}" alt="" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            ${mediaBadge}
+                            <span class="absolute bottom-2 right-2 bg-black/80 border border-[#ff5500]/50 text-[#ff5500] text-xs px-2.5 py-0.5 font-bold">
+                                ${escapeHtml(categoryNames[post.category] || post.category)}
+                            </span>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="text-lg font-bold text-white group-hover:text-[#ff5500] transition mb-2 line-clamp-2">${escapeHtml(post.title)}</h3>
+                            <p class="text-slate-400 text-sm line-clamp-3">${escapeHtml(post.content)}</p>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-4 flex justify-between items-center text-[11px] text-slate-500 font-tech border-t border-white/5 pt-3">
+                        <span>${new Date(post.created_at).toLocaleDateString('ar-DZ')}</span>
+                        <span class="text-cyan-400 group-hover:translate-x-[-4px] transition">ACCESS DATA &larr;</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // ---------- تصفية الأقسام ----------
+        function applyFilter(cat) {
+            renderPosts(cat === 'ALL' ? allPosts : allPosts.filter(p => p.category === cat));
+        }
+        document.getElementById('cat-nav').addEventListener('click', (e) => {
+            const btn = e.target.closest('.cat-btn');
+            if (!btn) return;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyFilter(btn.dataset.cat);
+        });
+
+        // ---------- نافذة الخبر ----------
+        function openPostModal(post) {
+            currentPost = post;
+            document.getElementById('modal-cat').textContent = categoryNames[post.category] || post.category;
+            document.getElementById('modal-title').textContent = post.title;
+            document.getElementById('modal-content').textContent = post.content || '';
+
+            const mediaBox = document.getElementById('modal-media');
+            mediaBox.innerHTML = '';
+            const videoSrc = safeUrl(post.video_url);
+            const imageSrc = safeUrl(post.image_url);
+            if (videoSrc) {
+                const v = document.createElement('video');
+                v.src = videoSrc;
+                v.controls = true;
+                v.playsInline = true;
+                v.className = 'w-full max-h-[400px]';
+                mediaBox.appendChild(v);
+            } else if (imageSrc) {
+                const img = document.createElement('img');
+                img.src = imageSrc;
+                img.alt = '';
+                img.className = 'w-full max-h-[450px] object-contain mx-auto';
+                mediaBox.appendChild(img);
+            }
+            mediaBox.style.display = mediaBox.children.length ? '' : 'none';
+
+            const linkBox = document.getElementById('modal-link-box');
+            linkBox.innerHTML = '';
+            const link = safeUrl(post.external_link);
+            if (link) {
+                const a = document.createElement('a');
+                a.href = link;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.className = 'inline-block bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-6 py-2.5 tactical-btn text-sm';
+                a.textContent = 'فتح الرابط المرفق ↗';
+                linkBox.appendChild(a);
+            }
+
+            document.getElementById('delete-btn').classList.toggle('hidden', !isAdmin);
+            openHudModal('post-modal', 'post-modal-box');
+        }
+
+        // ---------- أنيميشن فتح وإغلاق النوافذ ----------
+        function openHudModal(overlayId, boxId) {
+            const overlay = document.getElementById(overlayId);
+            const box = document.getElementById(boxId);
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            box.classList.remove('modal-exit');
+            box.classList.add('modal-enter');
+        }
+
+        function closeHudModal(overlayId, boxId) {
+            const overlay = document.getElementById(overlayId);
+            const box = document.getElementById(boxId || overlayId + '-box');
+            if (overlay.classList.contains('hidden')) return;
+            box.classList.remove('modal-enter');
+            box.classList.add('modal-exit');
+            overlay.querySelectorAll('video').forEach(v => v.pause());
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                if (overlayId === 'post-modal') document.getElementById('modal-media').innerHTML = '';
+            }, 240);
+        }
+
+        // أزرار الإغلاق + الإغلاق بالنقر على الخلفية
+        document.querySelectorAll('[data-close]').forEach(btn => {
+            btn.addEventListener('click', () => closeHudModal(btn.dataset.close));
+        });
+        ['post-modal', 'login-modal', 'admin-modal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', (e) => {
+                if (e.target.id === id) closeHudModal(id);
+            });
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') ['post-modal', 'login-modal', 'admin-modal'].forEach(id => closeHudModal(id));
+        });
+
+        // ---------- تسجيل دخول الأدمن (Supabase Auth) ----------
+        function updateAdminState(session) {
+            isAdmin = !!session && session.user && session.user.email === ADMIN_EMAIL;
+            document.getElementById('admin-btn').textContent = isAdmin ? '[ ADMIN ✓ ]' : '[ SYS_ADMIN ]';
+        }
+
+        sb.auth.onAuthStateChange((_event, session) => updateAdminState(session));
+
+        document.getElementById('admin-btn').addEventListener('click', () => {
+            if (isAdmin) openHudModal('admin-modal', 'admin-modal-box');
+            else openHudModal('login-modal', 'login-modal-box');
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            const status = document.getElementById('login-status');
+            btn.disabled = true;
+            status.textContent = '';
+            const { data, error } = await sb.auth.signInWithPassword({
+                email: document.getElementById('l-email').value.trim(),
+                password: document.getElementById('l-pass').value
+            });
+            btn.disabled = false;
+            if (error) { status.textContent = 'ACCESS DENIED // بيانات الدخول خاطئة'; return; }
+            if (data.user.email !== ADMIN_EMAIL) {
+                await sb.auth.signOut();
+                status.textContent = 'ACCESS DENIED // هذا الحساب ليس أدمن';
+                return;
+            }
+            document.getElementById('login-form').reset();
+            closeHudModal('login-modal', 'login-modal-box');
+            setTimeout(() => {
+                fetchPosts();
+                openHudModal('admin-modal', 'admin-modal-box');
+            }, 260);
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await sb.auth.signOut();
+            closeHudModal('admin-modal', 'admin-modal-box');
+        });
+
+        // ---------- رفع الملفات ----------
+        async function uploadMedia(file, uploadedPaths) {
+            if (!file) return null;
+            if (file.size > MAX_FILE_SIZE) throw new Error('حجم الملف أكبر من 50MB: ' + file.name);
+            const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${ext}`;
+            const { error } = await sb.storage.from(BUCKET).upload(fileName, file, {
+                contentType: file.type || undefined,
+                upsert: false
+            });
+            if (error) throw error;
+            uploadedPaths.push(fileName);
+            const { data } = sb.storage.from(BUCKET).getPublicUrl(fileName);
+            return data.publicUrl;
+        }
+
+        // ---------- نشر خبر جديد ----------
+        document.getElementById('publish-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const status = document.getElementById('upload-status');
+
+            if (!isAdmin) { status.textContent = 'ERROR: سجّل الدخول كأدمن أولاً'; return; }
+
+            const linkValue = document.getElementById('p-link').value.trim();
+            if (linkValue && !safeUrl(linkValue)) { status.textContent = 'ERROR: الرابط يجب أن يبدأ بـ http أو https'; return; }
+
+            btn.disabled = true;
+            status.textContent = 'UPLOADING MEDIA TO SERVER...';
+            const uploadedPaths = [];
+
+            try {
+                const imageUrl = await uploadMedia(document.getElementById('p-image').files[0], uploadedPaths);
+                const videoUrl = await uploadMedia(document.getElementById('p-video').files[0], uploadedPaths);
+
+                status.textContent = 'SAVING DATA...';
+                const { error } = await sb.from('posts').insert([{
+                    title: document.getElementById('p-title').value.trim(),
+                    category: document.getElementById('p-category').value,
+                    content: document.getElementById('p-content').value.trim(),
+                    image_url: imageUrl,
+                    video_url: videoUrl,
+                    external_link: linkValue || null
+                }]);
+                if (error) throw error;
+
+                status.textContent = 'SUCCESS! DEPLOYED.';
+                document.getElementById('publish-form').reset();
+                closeHudModal('admin-modal', 'admin-modal-box');
+                setTimeout(() => { status.textContent = ''; }, 1500);
+                fetchPosts();
+            } catch (err) {
+                // حذف الملفات المرفوعة إذا فشل حفظ المنشور
+                if (uploadedPaths.length) await sb.storage.from(BUCKET).remove(uploadedPaths);
+                status.textContent = 'ERROR: ' + (err.message || err);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // ---------- حذف منشور ----------
+        document.getElementById('delete-btn').addEventListener('click', async () => {
+            if (!isAdmin || !currentPost) return;
+            if (!confirm('هل أنت متأكد من حذف هذا المنشور نهائياً؟')) return;
+
+            const { error } = await sb.from('posts').delete().eq('id', currentPost.id);
+            if (error) { alert('فشل الحذف: ' + error.message); return; }
+
+            const paths = [storagePathFromUrl(currentPost.image_url), storagePathFromUrl(currentPost.video_url)].filter(Boolean);
+            if (paths.length) await sb.storage.from(BUCKET).remove(paths);
+
+            closeHudModal('post-modal', 'post-modal-box');
+            currentPost = null;
+            fetchPosts();
+        });
+
+        // ---------- بدء التشغيل ----------
+        (async function init() {
+            const { data } = await sb.auth.getSession();
+            updateAdminState(data.session);
+            fetchPosts();
+        })();
+    </script>
+</body>
+</html>
