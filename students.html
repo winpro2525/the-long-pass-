@@ -704,7 +704,17 @@
         $('auth-btn').addEventListener('click', () => openModal('auth-modal'));
         $('guest-join').addEventListener('click', () => openModal('auth-modal'));
         $('chat-join').addEventListener('click', () => openModal('auth-modal'));
-        $('user-chip').addEventListener('click', () => { $('pf-display').value = me?.display_name || ''; $('pf-username').value = me?.username || ''; $('pf-avatar-preview').textContent = (me?.display_name || '?').charAt(0); openModal('profile-modal'); });
+        function openProfileEditor() {
+            $('pf-display').value = me?.display_name || '';
+            $('pf-username').value = me?.username || '';
+            $('pf-avatar').value = '';
+            $('pf-avatar-preview').textContent = (me?.display_name || '?').charAt(0);
+            const av = safeUrl(me?.avatar_url);
+            if (av) $('pf-avatar-preview').innerHTML = '<img src="' + esc(av) + '" alt="" class="w-full h-full object-cover">';
+            openModal('profile-modal');
+        }
+        $('user-chip').addEventListener('click', openProfileEditor);
+        $('edit-profile-btn').addEventListener('click', openProfileEditor);
 
         $('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
