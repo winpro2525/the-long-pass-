@@ -1698,8 +1698,17 @@
             const map = { 'مقبول': 'chip-green', 'يحتاج تعديل': 'chip-rose', 'قيد المراجعة': 'chip-gold' };
             return '<span class="chip ' + (map[s] || 'chip-gold') + '">' + esc(s) + '</span>';
         }
+        async function fillExamSelect() {
+            const sel = $('hw-exam'); if (!sel) return;
+            const { data } = await sb.from('exams').select('id,title').order('created_at', { ascending: false });
+            const keep = sel.value;
+            sel.innerHTML = '<option value="">— بدون ربط —</option>' + (data || []).map(e => '<option value="' + e.id + '">' + esc(e.title) + '</option>').join('');
+            if (keep) sel.value = keep;
+        }
+
         async function loadSubmissions() {
             const box = $('subs-list'); if (!box) return;
+            fillExamSelect();
             const hint = $('subs-login-hint'); if (hint) hint.classList.toggle('hidden', !!session);
             const form = $('sub-form-wrap'); if (form) form.classList.toggle('hidden', !session);
             if (!session) { box.innerHTML = ''; return; }
