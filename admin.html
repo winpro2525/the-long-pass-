@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة التحكم | THE LONG PASS</title>
+<meta name="description" content="THE LONG PASS — منطقة الطلاب التعليمية">
+<meta name="theme-color" content="#090b0e">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<script>(function(){try{var t=localStorage.getItem('tlp-theme');if(!t)t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="admin">
+<div id="toasts"></div>
+
+<main class="admin-shell">
+    <div class="crumbs"><a href="students.html">الرئيسية</a> <span>›</span> <span>لوحة التحكم</span></div>
+    <div class="admin-head">
+        <div>
+            <h1 class="h2 mb-0">⚙️ لوحة التحكم</h1>
+            <p class="muted text-xs mt-1">الإعلانات · المنشورات · الطلاب · الوسوم والميداليات · لقب الأسبوع · الإشراف</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="students.html" class="btn btn-soft btn-sm">← المنطقة</a>
+            <a href="index.html" class="btn btn-soft btn-sm">الموقع</a>
+        </div>
+    </div>
+    <div class="frame p-4 md:p-5">
+<div class="admin-tabs">
+                <button type="button" class="tab-btn active" data-mtab="a-ann">📣 إعلان</button>
+                <button type="button" class="tab-btn" data-mtab="a-new">✍️ منشور</button>
+                <button type="button" class="tab-btn" data-mtab="a-manage">🗂 المنشورات <span id="a-manage-count" class="chip">0</span></button>
+                <button type="button" class="tab-btn" data-mtab="a-students">🎓 الطلاب <span id="a-students-count" class="chip">0</span></button>
+                <button type="button" class="tab-btn" data-mtab="a-award">🏆 اللقب</button>
+                <button type="button" class="tab-btn" data-mtab="a-mod">🧹 إشراف</button>
+            </div>
+
+            <!-- إعلان -->
+            <div id="a-ann">
+                <form id="ann-form" class="space-y-3">
+                    <div><label class="label">عنوان الإعلان *</label><input type="text" id="an-title" required maxlength="160" class="field"></div>
+                    <div><label class="label">النص</label><textarea id="an-content" rows="3" class="field" maxlength="2000"></textarea></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="md:col-span-2"><label class="label">صورة الإعلان</label><input type="file" id="an-image" accept="image/*" class="field text-xs"><img id="an-image-preview" class="hidden mt-2 max-h-24 border" style="border-color: var(--border)" alt=""></div>
+                        <div><label class="label">رقم الملف المرتبط</label><input type="text" id="an-fileno" dir="ltr" class="field" placeholder="مثال: 27"></div>
+                    </div>
+                    <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" id="an-pinned"> 📌 تثبيت في الأعلى</label>
+                    <button type="submit" id="an-submit" class="btn btn-gold w-full font-tech tracking-widest py-2.5">نشر</button>
+                    <p id="an-status" class="text-center text-xs gold font-bold min-h-[1rem]"></p>
+                </form>
+                <div class="mt-4"><h3 class="font-black text-sm mb-2">الإعلانات المنشورة</h3><div id="an-list" class="flex flex-col gap-2"></div></div>
+            </div>
+
+            <!-- منشور -->
+            <div id="a-new" class="mtab-pane hidden">
+                <div id="s-edit-banner" class="hidden mb-3 p-2.5 text-sm font-bold items-center justify-between gap-3" style="background: rgba(var(--gold-rgb),.1); border: 1px solid rgba(var(--gold-rgb),.45)">
+                    <span>✏️ تعديل: <span id="s-edit-label"></span></span>
+                    <button type="button" id="s-cancel-edit" class="btn btn-soft btn-sm">إلغاء</button>
+                </div>
+                <form id="spublish-form" class="space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div class="md:col-span-2"><label class="label">العنوان *</label><input type="text" id="sp-title" required maxlength="200" class="field"></div>
+                        <div><label class="label">القسم *</label>
+                            <select id="sp-section" class="field"><option value="guides">📘 شروحات</option><option value="files">📦 ملفات</option><option value="videos">🎬 فيديوهات</option></select>
+                        </div>
+                        <div><label class="label">رقم الملف</label><input type="text" id="sp-fileno" dir="ltr" class="field" placeholder="27"></div>
+                    </div>
+                    <div><label class="label">التفاصيل *</label><textarea id="sp-content" rows="4" required class="field"></textarea></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label class="label">صورة الغلاف</label><input type="file" id="sp-image" accept="image/*" class="field text-xs"><img id="sp-image-preview" class="hidden mt-2 max-h-24 border" style="border-color: var(--border)" alt=""></div>
+                        <div><label class="label">فيديو</label><input type="file" id="sp-video" accept="video/*" class="field text-xs"></div>
+                    </div>
+                    <div>
+                        <label class="label">ملفات للتحميل</label>
+                        <div id="sp-dropzone" class="dropzone"><div class="text-xl mb-1">📦</div><div class="font-bold text-sm">اسحب أو اضغط للاختيار</div><div class="text-[11px] muted mt-1">الحد <span id="sp-max-size"></span></div><input type="file" id="sp-files" multiple class="hidden"></div>
+                        <div id="sp-file-list" class="flex flex-col gap-2 mt-2"></div>
+                    </div>
+                    <div><label class="label">رابط خارجي</label><input type="url" id="sp-link" dir="ltr" class="field" placeholder="https://..."></div>
+                    <div id="sp-progress-wrap" class="hidden"><div class="progress"><i id="sp-progress-bar"></i></div></div>
+                    <button type="submit" id="sp-submit" class="btn btn-gold w-full font-tech tracking-widest py-2.5">DEPLOY</button>
+                    <p id="sp-status" class="text-center text-xs gold font-bold min-h-[1rem]"></p>
+                </form>
+            </div>
+
+            <div id="a-manage" class="mtab-pane hidden"><div id="a-posts-list" class="flex flex-col gap-2"></div></div>
+
+            <div id="a-students" class="mtab-pane hidden">
+                <p class="muted text-[11.5px] mb-2.5">اكتب الوسم واختر الميدالية لكل طالب بنفسك (لا شيء تلقائي)، وعدّل النقاط أو احظر أو احذف.</p>
+                <div id="a-students-list" class="flex flex-col gap-2"></div>
+            </div>
+
+            <div id="a-award" class="mtab-pane hidden">
+                <form id="award-form" class="space-y-3">
+                    <div><label class="label">الطالب</label><select id="aw-user" class="field"></select></div>
+                    <div><label class="label">اللقب</label><input type="text" id="aw-title" class="field" value="⭐ طالب الأسبوع" maxlength="60"></div>
+                    <div><label class="label">الأسبوع (اختياري)</label><input type="text" id="aw-week" class="field" placeholder="الأسبوع 46"></div>
+                    <div><label class="label">ملاحظة (اختياري)</label><textarea id="aw-note" rows="2" class="field"></textarea></div>
+                    <button type="submit" class="btn btn-gold w-full">🏆 منح اللقب</button>
+                </form>
+                <div class="mt-4"><h3 class="font-black text-sm mb-2">الألقاب السابقة</h3><div id="aw-list" class="flex flex-col gap-2"></div></div>
+            </div>
+
+            <div id="a-mod" class="mtab-pane hidden">
+                <h3 class="font-black text-sm mb-2">💬 آخر التعليقات</h3>
+                <div id="mod-comments" class="flex flex-col gap-2 mb-4"></div>
+                <h3 class="font-black text-sm mb-2">🗨️ آخر رسائل الدردشة</h3>
+                <div id="mod-chat" class="flex flex-col gap-2"></div>
+            </div>
+    </div>
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

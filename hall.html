@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة الشرف | THE LONG PASS</title>
+<meta name="description" content="THE LONG PASS — منطقة الطلاب التعليمية">
+<meta name="theme-color" content="#090b0e">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<script>(function(){try{var t=localStorage.getItem('tlp-theme');if(!t)t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="hall">
+<div id="toasts"></div>
+<!-- ======================= قاعة المشاهير ======================= -->
+    <section id="hall" class="max-w-4xl mx-auto px-3 pt-12">
+        <div class="section-head">
+            <div class="kicker">// لوحة الشرف</div>
+            <h2 class="h2">🏆 لوحة الشرف</h2>
+            <div class="rule"></div>
+        </div>
+
+        <div id="award-banner" class="frame hall champ p-5 mb-6 relative hide">
+            <div class="confetti" id="confetti"></div>
+            <div class="relative flex items-center gap-4">
+                <div class="text-5xl"><span class="crown">🏆</span></div>
+                <div class="flex-1">
+                    <div class="kicker">// طالب الأسبوع</div>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                        <span class="text-xl md:text-2xl font-black gold" id="award-title"></span>
+                        <span class="font-black" id="award-user"></span>
+                    </div>
+                    <p class="muted text-sm mt-1" id="award-note"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="podium-note" class="muted text-xs text-center mb-3 hide">لم يحدد الأدمن أفضل ثلاثة بعد.</div>
+        <div id="podium" class="podium mb-5"></div>
+        <div id="ranking-list" class="flex flex-col gap-2"></div>
+    </section>
+
+    
+
+<script src="assets/app.js"></script>
+</body>
+</html>

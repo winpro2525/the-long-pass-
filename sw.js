@@ -1,9 +1,16 @@
 /* THE LONG PASS — Service Worker */
-const VERSION = 'tlp-v1';
+const VERSION = 'tlp-v2';
 const SHELL = [
   './',
   './index.html',
   './students.html',
+  './announcements.html',
+  './content.html',
+  './members.html',
+  './hall.html',
+  './chat.html',
+  './assets/app.css',
+  './assets/app.js',
   './offline.html',
   './manifest.json',
   './icons/icon-192.png',

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الدردشة | THE LONG PASS</title>
+<meta name="description" content="THE LONG PASS — منطقة الطلاب التعليمية">
+<meta name="theme-color" content="#090b0e">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<script>(function(){try{var t=localStorage.getItem('tlp-theme');if(!t)t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="chat">
+<div id="toasts"></div>
+<!-- ======================= الدردشة ======================= -->
+    <section id="chat" class="max-w-3xl mx-auto px-3 pt-12 pb-16">
+        <div class="section-head">
+            <div class="kicker">// الدردشة</div>
+            <h2 class="h2">💬 دردشة الطلاب</h2>
+            <div class="rule"></div>
+        </div>
+        <div id="chat-login-hint" class="frame p-6 text-center">
+            <p class="muted text-sm mb-3">سجّل الدخول للمشاركة في الدردشة.</p>
+            <button type="button" id="chat-join" class="btn btn-cyan">دخول / تسجيل</button>
+        </div>
+
+        <div id="chat-box" class="frame chat-shell hidden">
+            <div class="chat-head">
+                <div class="w-9 h-9 rounded-full grid place-items-center" style="background: rgba(var(--violet-rgb),.2); color: var(--violet)">💬</div>
+                <div class="flex-1 leading-tight">
+                    <div class="font-black text-sm">ساحة الطلاب</div>
+                    <div class="text-[10.5px] muted">محادثة مباشرة · صوت وصور</div>
+                </div>
+                <button id="chat-jump" type="button" class="btn btn-soft btn-sm hide" title="آخر الرسائل">⬇</button>
+            </div>
+            <div class="chat-body" id="chat-list"></div>
+            <div class="composer">
+                <div id="chat-file-info" class="text-[11.5px] gold mb-1.5 hidden"></div>
+                <div class="row">
+                    <textarea id="chat-input" rows="1" class="field" placeholder="اكتب رسالة..." maxlength="500"></textarea>
+                    <button type="button" id="chat-attach" class="btn btn-soft btn-icon" title="إرفاق صورة أو PDF">📎</button>
+                    <button type="button" id="chat-mic" class="btn btn-soft btn-icon" title="رسالة صوتية">🎤</button>
+                    <input type="file" id="chat-file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,audio/*" class="hidden">
+                    <button type="button" id="chat-send" class="btn btn-gold btn-icon font-tech" title="إرسال">➤</button>
+                </div>
+                <p class="text-[10px] muted mt-1.5">صور · PDF · صوت (حتى 60 ثانية) — بحد 4.4 ميغابايت</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t mt-6 py-5" style="border-color: var(--border)">
+        <div class="max-w-6xl mx-auto px-3 flex flex-col md:flex-row items-center justify-between gap-2 text-xs">
+            <div class="font-tech font-black tracking-widest">THE LONG <span class="gold">PASS</span></div>
+            <div class="muted">© <span id="year"></span> منطقة الطلاب</div>
+            <a href="index.html" class="btn btn-soft btn-sm">الصفحة الرئيسية</a>
+        </div>
+    </footer>
+
+    <div id="toasts"></div>
+
+    
+
+<script src="assets/app.js"></script>
+</body>
+</html>

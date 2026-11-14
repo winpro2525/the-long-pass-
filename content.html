@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المحتوى التعليمي | THE LONG PASS</title>
+<meta name="description" content="THE LONG PASS — منطقة الطلاب التعليمية">
+<meta name="theme-color" content="#090b0e">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<script>(function(){try{var t=localStorage.getItem('tlp-theme');if(!t)t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="content">
+<div id="toasts"></div>
+<!-- ======================= المحتوى ======================= -->
+    <main id="feed" class="max-w-6xl mx-auto px-3 pt-10">
+        <div class="section-head">
+            <div class="kicker">// المحتوى التعليمي</div>
+            <h2 class="h2">🗂 الشروحات والملفات والفيديوهات</h2>
+            <div class="rule"></div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-2 mb-3" id="section-nav">
+            <button type="button" data-sec="ALL" class="btn btn-sm btn-gold">الكل</button>
+            <button type="button" data-sec="guides" class="btn btn-sm btn-soft">📘 شروحات</button>
+            <button type="button" data-sec="files" class="btn btn-sm btn-soft">📦 ملفات</button>
+            <button type="button" data-sec="videos" class="btn btn-sm btn-soft">🎬 فيديوهات</button>
+        </div>
+        <div id="file-filter" class="text-center mb-4 hide">
+            <span class="chip chip-gold">عرض الملف <b id="file-filter-no"></b></span>
+            <button id="file-filter-clear" class="btn btn-soft btn-sm ms-1">✕ إلغاء الفلتر</button>
+        </div>
+        <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+        </div>
+    </main>
+
+    
+
+<script src="assets/app.js"></script>
+</body>
+</html>
