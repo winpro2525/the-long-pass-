@@ -4,21 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منطقة الطلاب | THE LONG PASS</title>
-    <meta name="description" content="منطقة الطلاب في THE LONG PASS: شروحات وملفات وفيديوهات، مع حسابات شخصية ونقاط ومستويات ودردشة.">
-    <meta name="theme-color" content="#090b0e">
-<link rel="manifest" href="manifest.json">
+    <meta name="description" content="منطقة الطلاب في THE LONG PASS: إعلانات وشروحات وملفات وفيديوهات، مجتمع ونقاط ومستويات ودردشة.">
+    <meta name="theme-color" content="#07050f">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LONG PASS">
-
     <script>
         (function () {
             try {
                 var t = localStorage.getItem('tlp-theme');
-                if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                if (!t) t = 'dark';
                 document.documentElement.setAttribute('data-theme', t);
             } catch (e) {}
         })();
@@ -29,181 +28,326 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
+        /* ===================== الرموز الملكية/التقنية ===================== */
         :root, [data-theme="dark"] {
-            --bg: #090b0e; --bg2: #121a26; --panel: #11151c; --panel2: #171d27;
-            --text: #e2e8f0; --muted: #94a3b8; --border: rgba(255,255,255,.09);
-            --accent: #ff5500; --accent-rgb: 255,85,0;
-            --accent2: #00f0ff; --accent2-rgb: 0,240,255;
-            --on-accent: #000; --input: rgba(0,0,0,.45); --overlay: rgba(0,0,0,.86); --glow: rgba(255,85,0,.32);
+            --bg: #07050f; --bg2: #150a26; --panel: #0e0918; --panel2: #171029;
+            --text: #ece7f7; --muted: #a294c4; --border: rgba(168,85,247,.22);
+            --gold: #f6c86a; --gold-rgb: 246,200,106;
+            --violet: #a855f7; --violet-rgb: 168,85,247;
+            --cyan: #22d3ee; --cyan-rgb: 34,211,238;
+            --rose: #f43f5e; --ok: #22c55e; --on-gold: #1a0f00;
+            --input: rgba(0,0,0,.5); --overlay: rgba(4,2,10,.9);
+            --glow: rgba(168,85,247,.4);
         }
         [data-theme="light"] {
-            --bg: #f1f4f9; --bg2: #e3e9f2; --panel: #ffffff; --panel2: #f5f7fb;
-            --text: #0f172a; --muted: #475569; --border: rgba(15,23,42,.14);
-            --accent: #e24800; --accent-rgb: 226,72,0;
-            --accent2: #0a7893; --accent2-rgb: 10,120,147;
-            --on-accent: #fff; --input: #ffffff; --overlay: rgba(15,23,42,.62); --glow: rgba(226,72,0,.22);
+            --bg: #f6f3ff; --bg2: #e9e2fb; --panel: #ffffff; --panel2: #f5f0ff;
+            --text: #1b1030; --muted: #6b5b8a; --border: rgba(110,60,190,.22);
+            --gold: #b8860b; --gold-rgb: 184,134,11;
+            --violet: #7c3aed; --violet-rgb: 124,58,237;
+            --cyan: #0e7490; --cyan-rgb: 14,116,144;
+            --rose: #e11d48; --ok: #15803d; --on-gold: #fff;
+            --input: #fff; --overlay: rgba(20,10,40,.65);
+            --glow: rgba(124,58,237,.28);
         }
         html { scroll-behavior: smooth; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); background-image: radial-gradient(circle at 50% 0%, var(--bg2) 0%, var(--bg) 70%); background-attachment: fixed; color: var(--text); overflow-x: hidden; }
+        body {
+            font-family: 'Cairo', sans-serif; color: var(--text); overflow-x: hidden;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(900px 500px at 85% -10%, rgba(var(--violet-rgb), .22), transparent 60%),
+                radial-gradient(700px 400px at 10% 0%, rgba(var(--gold-rgb), .12), transparent 60%),
+                linear-gradient(180deg, var(--bg2), var(--bg) 45%);
+            background-attachment: fixed;
+        }
         body.lock { overflow: hidden; }
         .font-tech { font-family: 'Orbitron', sans-serif; }
-        .muted { color: var(--muted); } .accent { color: var(--accent); } .accent2 { color: var(--accent2); }
+        .muted { color: var(--muted); } .gold { color: var(--gold); } .violet { color: var(--violet); } .cyan { color: var(--cyan); }
 
-        .btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-            font-weight: 800; font-size: .9rem; padding: .7rem 1.4rem; cursor: pointer; border: 0;
+        /* شبكة تقنية خفيفة */
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .35;
+            background-image: linear-gradient(rgba(var(--violet-rgb),.07) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(var(--violet-rgb),.07) 1px, transparent 1px);
+            background-size: 46px 46px;
+            mask-image: radial-gradient(circle at 50% 25%, #000 0%, transparent 78%);
+            -webkit-mask-image: radial-gradient(circle at 50% 25%, #000 0%, transparent 78%);
+        }
+        .aurora { position: fixed; inset: -20% -10%; z-index: 0; pointer-events: none; filter: blur(70px); opacity: .5; }
+        .aurora span { position: absolute; border-radius: 50%; animation: drift 22s ease-in-out infinite alternate; }
+        .aurora span:nth-child(1) { width: 380px; height: 380px; top: 4%; left: 6%; background: rgba(var(--violet-rgb),.5); }
+        .aurora span:nth-child(2) { width: 300px; height: 300px; top: 30%; right: 4%; background: rgba(var(--gold-rgb),.32); animation-delay: -7s; }
+        .aurora span:nth-child(3) { width: 340px; height: 340px; bottom: 6%; left: 32%; background: rgba(var(--cyan-rgb),.3); animation-delay: -13s; }
+        @keyframes drift { to { transform: translate3d(60px,-50px,0) scale(1.18); } }
+
+        /* ===================== أطر وزخارف ===================== */
+        .frame { position: relative; background: color-mix(in srgb, var(--panel) 92%, transparent);
+            border: 1px solid var(--border);
+            clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); }
+        .frame::before, .frame::after {
+            content: ''; position: absolute; width: 26px; height: 26px; pointer-events: none;
+            border: 2px solid var(--gold); opacity: .75; }
+        .frame::before { top: 6px; right: 6px; border-left: 0; border-bottom: 0; }
+        .frame::after { bottom: 6px; left: 6px; border-right: 0; border-top: 0; }
+        .royal { background:
+            radial-gradient(600px 200px at 50% -40%, rgba(var(--gold-rgb),.22), transparent 70%),
+            linear-gradient(160deg, var(--panel2), var(--panel)); border-color: rgba(var(--gold-rgb),.4); }
+
+        .card { position: relative; background: var(--panel); border: 1px solid var(--border); overflow: hidden;
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+            transition: transform .3s cubic-bezier(.2,1,.3,1), border-color .3s, box-shadow .3s; }
+        .card:hover { transform: translateY(-5px); border-color: rgba(var(--gold-rgb),.6); box-shadow: 0 22px 50px -22px var(--glow); }
+        .card .shine { position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(115deg, transparent 38%, rgba(var(--gold-rgb),.16) 48%, transparent 58%);
+            transform: translateX(-120%); transition: transform .8s ease; }
+        .card:hover .shine { transform: translateX(120%); }
+
+        .section-head { text-align: center; margin: 0 auto 22px; }
+        .kicker { font-family: 'Orbitron', sans-serif; font-size: .64rem; letter-spacing: .38em; color: var(--gold); opacity: .9; }
+        .h2 { font-size: 1.85rem; font-weight: 900; margin-top: 6px; }
+        .rule { height: 1px; width: 130px; margin: 12px auto 0;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+        /* ===================== أزرار ===================== */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font-weight: 800; font-size: .88rem;
+            padding: .68rem 1.3rem; cursor: pointer; border: 0; position: relative; overflow: hidden; user-select: none;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: transform .2s ease, filter .2s ease, background-color .25s ease, color .25s ease;
-            user-select: none; -webkit-tap-highlight-color: transparent; }
+            transition: transform .2s, filter .2s, background-color .25s, color .25s, box-shadow .25s; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
-        .btn:active { transform: translateY(0) scale(.96); }
+        .btn:active { transform: translateY(0) scale(.965); }
         .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-        .btn-primary { background: var(--accent); color: var(--on-accent); }
-        .btn-cyan { background: var(--accent2); color: var(--on-accent); }
-        .btn-ghost { background: rgba(var(--accent-rgb), .1); color: var(--accent); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), .5); }
+        .btn-gold { background: linear-gradient(120deg, var(--gold), #ffdf9e); color: var(--on-gold); box-shadow: 0 10px 26px -12px rgba(var(--gold-rgb),.7); }
+        .btn-violet { background: var(--violet); color: #fff; }
+        .btn-cyan { background: var(--cyan); color: #001014; }
+        .btn-ghost { background: rgba(var(--gold-rgb),.1); color: var(--gold); box-shadow: inset 0 0 0 1px rgba(var(--gold-rgb),.5); }
         .btn-soft { background: var(--panel2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
-        .btn-danger { background: rgba(220,38,38,.15); color: #ef4444; box-shadow: inset 0 0 0 1px rgba(239,68,68,.4); }
-        .btn-danger:hover { background: #dc2626; color: #fff; }
-        .btn-sm { padding: .4rem .9rem; font-size: .78rem; }
+        .btn-danger { background: rgba(244,63,94,.14); color: var(--rose); box-shadow: inset 0 0 0 1px rgba(244,63,94,.45); }
+        .btn-danger:hover { background: var(--rose); color: #fff; }
+        .btn-sm { padding: .38rem .8rem; font-size: .76rem; }
+        .btn-icon { padding: .5rem .62rem; }
 
-        .card { background: var(--panel); border: 1px solid var(--border);
-            clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
-            transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
-        .card:hover { border-color: var(--accent); box-shadow: 0 14px 34px -12px var(--glow); }
-        .panel-box { background: var(--panel); border: 1px solid var(--border);
-            clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
-        .chip { display: inline-block; font-size: 11px; padding: 2px 9px; border: 1px solid var(--border); color: var(--muted); background: var(--panel2); }
-
-        .field { width: 100%; background: var(--input); border: 1px solid var(--border); padding: .65rem .8rem; color: var(--text); outline: none; transition: border-color .2s, box-shadow .2s; }
-        .field:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(var(--accent2-rgb), .16); }
+        .field { width: 100%; background: var(--input); border: 1px solid var(--border); padding: .6rem .8rem;
+            color: var(--text); outline: none; transition: border-color .2s, box-shadow .2s; }
+        .field:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(var(--gold-rgb),.16); }
         select.field option { background: var(--panel); color: var(--text); }
-        .label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+        .label { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 4px; font-weight: 700; }
+        .chip { display: inline-block; font-size: 11px; padding: 2px 9px; border: 1px solid var(--border); color: var(--muted); background: var(--panel2); }
+        .chip-gold { border-color: rgba(var(--gold-rgb),.6); color: var(--gold); background: rgba(var(--gold-rgb),.1); }
 
+        /* ===================== نافذة/طبقات ===================== */
         @keyframes hudOpen { 0% { opacity: 0; transform: scaleX(.1) scaleY(.02); } 50% { opacity: 1; transform: scaleX(1.02) scaleY(.05); } 100% { opacity: 1; transform: scaleX(1) scaleY(1); } }
-        @keyframes hudClose { 0% { opacity: 1; transform: scaleX(1) scaleY(1); } 100% { opacity: 0; transform: scaleX(0) scaleY(0); } }
+        @keyframes hudClose { to { opacity: 0; transform: scaleX(0) scaleY(0); } }
         .modal-enter { animation: hudOpen .35s cubic-bezier(.22,1,.36,1) forwards; }
-        .modal-exit { animation: hudClose .25s cubic-bezier(.55,.085,.68,.53) forwards; }
-        .overlay { background: var(--overlay); backdrop-filter: blur(6px); }
-
-        .tab-btn { padding: 8px 14px; font-weight: 700; font-size: 13px; color: var(--muted); border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; }
+        .modal-exit { animation: hudClose .22s forwards; }
+        .overlay { background: var(--overlay); backdrop-filter: blur(7px); }
+        .tab-btn { padding: 7px 13px; font-weight: 800; font-size: 12.5px; color: var(--muted); border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; }
         .tab-btn:hover { color: var(--text); }
-        .tab-btn.active { color: var(--accent); border-color: var(--accent); }
+        .tab-btn.active { color: var(--gold); border-color: var(--gold); }
 
-        .dropzone { border: 2px dashed var(--border); padding: 18px; text-align: center; cursor: pointer; transition: all .25s; background: var(--input); }
-        .dropzone:hover, .dropzone.drag { border-color: var(--accent2); background: rgba(var(--accent2-rgb), .07); }
-        .file-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--panel2); border: 1px solid var(--border); }
-        .file-ico { font-size: 22px; width: 30px; text-align: center; }
+        .dropzone { border: 2px dashed var(--border); padding: 16px; text-align: center; cursor: pointer; transition: all .25s; background: var(--input); }
+        .dropzone:hover, .dropzone.drag { border-color: var(--gold); background: rgba(var(--gold-rgb),.07); }
+        .file-row { display: flex; align-items: center; gap: 10px; padding: 9px 11px; background: var(--panel2); border: 1px solid var(--border); }
+        .file-ico { font-size: 20px; width: 28px; text-align: center; }
 
-        #toasts { position: fixed; bottom: 20px; left: 20px; z-index: 120; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 12px 18px; font-size: 14px; font-weight: 600; min-width: 220px; max-width: 340px;
-            background: var(--panel); color: var(--text); border: 1px solid var(--border); border-right: 4px solid var(--accent2);
-            animation: toastIn .4s cubic-bezier(.22,1,.36,1); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-        .toast.error { border-right-color: #ef4444; }
-        .toast.ok { border-right-color: #22c55e; }
-        .toast.out { animation: toastOut .3s forwards; }
+        #toasts { position: fixed; bottom: 18px; left: 18px; z-index: 130; display: flex; flex-direction: column; gap: 9px; }
+        .toast { padding: 11px 16px; font-size: 13.5px; font-weight: 700; min-width: 210px; max-width: 330px;
+            background: var(--panel); color: var(--text); border: 1px solid var(--border); border-right: 4px solid var(--gold);
+            animation: toastIn .35s cubic-bezier(.22,1,.36,1); box-shadow: 0 12px 34px rgba(0,0,0,.45); }
+        .toast.error { border-right-color: var(--rose); } .toast.ok { border-right-color: var(--ok); }
+        .toast.out { animation: toastOut .28s forwards; }
         @keyframes toastIn { from { opacity: 0; transform: translateX(-40px); } }
         @keyframes toastOut { to { opacity: 0; transform: translateX(-40px); } }
 
         #theme-btn span { display: inline-block; transition: transform .5s cubic-bezier(.22,1,.36,1); }
         #theme-btn.spin span { transform: rotate(360deg) scale(1.2); }
 
-        .avatar-ring { background: conic-gradient(var(--accent), var(--accent2), var(--accent)); }
-        .lvl-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12px; padding: 4px 12px;
-            background: rgba(var(--accent2-rgb), .1); border: 1px solid rgba(var(--accent2-rgb), .45); color: var(--accent2);
+        /* ===================== ملف شخصي ===================== */
+        .ring-royal { background: conic-gradient(var(--gold), var(--violet), var(--cyan), var(--gold)); animation: spin 9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .lvl-badge { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 11.5px; padding: 4px 11px;
+            background: rgba(var(--gold-rgb),.1); border: 1px solid rgba(var(--gold-rgb),.5); color: var(--gold);
             clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+        .progress { height: 7px; background: rgba(255,255,255,.08); overflow: hidden; }
+        .progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--violet), var(--gold)); transition: width .4s; }
 
-        .like-btn { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: .82rem; padding: .45rem 1rem; cursor: pointer;
+        .like-btn { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: .8rem; padding: .42rem .95rem; cursor: pointer;
             border: 1px solid var(--border); background: var(--panel2); color: var(--muted); transition: all .2s; user-select: none;
             clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
-        .like-btn:hover { border-color: #f43f5e; color: #f43f5e; }
-        .like-btn.liked { background: rgba(244,63,94,.15); border-color: #f43f5e; color: #f43f5e; }
+        .like-btn:hover { border-color: var(--rose); color: var(--rose); }
+        .like-btn.liked { background: rgba(244,63,94,.15); border-color: var(--rose); color: var(--rose); }
         .like-btn.liked .heart { animation: pop .35s ease; }
         @keyframes pop { 40% { transform: scale(1.45); } }
 
-        .comment-item { display: flex; gap: 10px; padding: 12px; background: var(--panel2); border: 1px solid var(--border); }
-        .c-avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center; font-weight: 900; background: rgba(var(--accent-rgb),.15); color: var(--accent); }
+        .comment-item { display: flex; gap: 9px; padding: 11px; background: var(--panel2); border: 1px solid var(--border); }
+        .c-avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center;
+            font-weight: 900; background: rgba(var(--gold-rgb),.15); color: var(--gold); }
 
-        .chat-item { display: flex; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); background: var(--panel); }
-        .chat-item.mine { background: rgba(var(--accent-rgb), .07); border-color: rgba(var(--accent-rgb), .35); }
+        /* ===================== دردشة بأسلوب ماسنجر ===================== */
+        .chat-shell { display: flex; flex-direction: column; height: min(72vh, 620px); position: relative;
+            background: linear-gradient(180deg, rgba(var(--violet-rgb),.07), transparent 40%), var(--panel); }
+        .chat-head { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border);
+            background: color-mix(in srgb, var(--panel2) 80%, transparent); backdrop-filter: blur(8px); }
+        .chat-body { flex: 1; overflow-y: auto; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 3px; scrollbar-width: thin; }
+        .day-sep { text-align: center; margin: 10px 0 6px; font-size: 10.5px; color: var(--muted); position: relative; }
+        .day-sep span { background: var(--panel2); padding: 2px 12px; border: 1px solid var(--border); border-radius: 999px; }
 
-        .msg-scroll { max-height: 420px; overflow-y: auto; scrollbar-width: thin; }
+        .brow { display: flex; align-items: flex-end; gap: 7px; max-width: 100%; }
+        .brow.mine { flex-direction: row-reverse; }
+        .brow + .brow { margin-top: 2px; }
+        .brow.grouped { margin-top: 1px; }
+        .brow .bav { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center;
+            font-size: 11px; font-weight: 900; background: rgba(var(--gold-rgb),.16); color: var(--gold); }
+        .brow .bav.ph { visibility: hidden; }
+        .bwrap { max-width: min(78%, 430px); }
+        .bname { font-size: 10.5px; font-weight: 800; color: var(--muted); margin: 0 4px 2px; }
+        .bubble { padding: 8px 12px; font-size: .9rem; line-height: 1.55; word-break: break-word; position: relative;
+            background: var(--panel2); border: 1px solid var(--border);
+            border-radius: 14px 14px 14px 5px; }
+        .brow.mine .bubble { background: linear-gradient(135deg, rgba(var(--violet-rgb),.9), rgba(var(--gold-rgb),.75));
+            color: #fff; border-color: transparent; border-radius: 14px 14px 5px 14px; }
+        .bubble .btime { display: block; font-size: 9.5px; opacity: .7; margin-top: 3px; text-align: left; }
+        .bubble audio { width: 220px; max-width: 100%; height: 34px; margin-top: 2px; }
+        .bubble img.ph-img { max-height: 190px; border-radius: 8px; margin-top: 4px; cursor: pointer; }
+        .bubble .bfile { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700;
+            background: rgba(0,0,0,.22); padding: 4px 9px; border-radius: 7px; margin-top: 4px; }
+        .brow.mine .bubble a, .brow.mine .bubble .bfile { color: #fff; }
+        [data-theme="light"] .brow.mine .bubble { background: linear-gradient(140deg, var(--violet), #5b21b6); }
+        [data-theme="light"] .chat-body { background: var(--panel); }
+        [data-theme="light"] .chat-shell { box-shadow: 0 18px 40px -28px rgba(0,0,0,.4); }
+        .bubble .del { position: absolute; top: -7px; left: -7px; width: 20px; height: 20px; border-radius: 50%;
+            display: none; place-items: center; font-size: 10px; background: var(--rose); color: #fff; border: 0; cursor: pointer; }
+        .brow:hover .del { display: grid; }
+        .typing { display: flex; gap: 3px; padding: 9px 12px; }
+        .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+        .typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+        @keyframes blink { 0%,80%,100% { opacity: .3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+        .composer { border-top: 1px solid var(--border); padding: 9px 10px; background: color-mix(in srgb, var(--panel2) 85%, transparent); }
+        .composer .row { display: flex; align-items: flex-end; gap: 7px; }
+        .composer textarea { resize: none; max-height: 110px; border-radius: 14px; }
+        .mic-live { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--rose); }
+        .mic-live .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rose); animation: blink 1s infinite; }
+
+        /* ===================== أعضاء ===================== */
+        .member { position: relative; padding: 16px 12px; text-align: center; background: linear-gradient(180deg, var(--panel2), var(--panel)); }
+        .member .mav { width: 68px; height: 68px; margin: 0 auto 8px; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+            font-weight: 900; font-size: 22px; background: rgba(var(--gold-rgb),.15); color: var(--gold); position: relative; z-index: 1; }
+        .member .mring { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 76px; height: 76px; border-radius: 50%; opacity: .8; }
+        .member.new::after { content: 'جديد'; position: absolute; top: 8px; left: 8px; font-size: 9.5px; font-weight: 900;
+            background: var(--gold); color: var(--on-gold); padding: 1px 7px; border-radius: 999px; }
+
+        /* ===================== قاعة المشاهير ===================== */
+        .hall { position: relative; overflow: hidden; }
+        .hall::before { content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(var(--gold-rgb),.28), transparent 62%); }
+        .crown { font-size: 2.1rem; display: inline-block; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 50% { transform: translateY(-7px) rotate(-3deg); } }
+        .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; }
+        .podium .p { flex: 1; max-width: 130px; text-align: center; padding: 12px 8px 8px; position: relative;
+            background: linear-gradient(180deg, rgba(var(--gold-rgb),.16), transparent); border: 1px solid var(--border);
+            border-bottom: 0; clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 100%, 0 100%); }
+        .podium .p.first { padding-top: 26px; border-color: rgba(var(--gold-rgb),.75); background: linear-gradient(180deg, rgba(var(--gold-rgb),.32), transparent); }
+        .podium .p .medal { font-size: 1.4rem; }
+        .champ { box-shadow: 0 0 0 1px rgba(var(--gold-rgb),.6), 0 24px 60px -26px rgba(var(--gold-rgb),.65); animation: glowPulse 3.4s ease-in-out infinite; }
+        @keyframes glowPulse { 50% { box-shadow: 0 0 0 2px rgba(var(--gold-rgb),.9), 0 30px 70px -24px rgba(var(--gold-rgb),.85); } }
+        .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        .confetti i { position: absolute; width: 6px; height: 10px; opacity: .9; animation: fall linear infinite; }
+        @keyframes fall { 0% { transform: translateY(-20px) rotate(0); } 100% { transform: translateY(320px) rotate(540deg); } }
+
+        /* قائمة الإشعارات */
+        #notif-panel { position: fixed; inset-inline-start: 0; top: 0; bottom: 0; width: min(360px, 92vw); z-index: 110;
+            background: var(--panel); border-inline-end: 1px solid var(--border); transform: translateX(-102%); transition: transform .3s cubic-bezier(.2,1,.3,1);
+            display: flex; flex-direction: column; }
+        [dir="rtl"] #notif-panel { transform: translateX(102%); }
+        #notif-panel.open { transform: translateX(0) !important; }
+        .notif-item { display: flex; gap: 9px; padding: 11px 13px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        @media (max-width: 700px) {
+            #admin-btn, #chip-points { display: none !important; }
+            header .max-w-6xl { padding-inline: 8px; gap: 6px; }
+            header a > div > div:first-child { font-size: 13px; letter-spacing: .1em; }
+        }
+        .notif-item.unread { background: rgba(var(--gold-rgb),.08); }
+        .badge-dot { position: absolute; top: 3px; right: 3px; min-width: 16px; height: 16px; border-radius: 999px;
+            background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 900; display: grid; place-items: center; padding: 0 4px; }
+
+        .msg-scroll::-webkit-scrollbar, .chat-body::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar { width: 7px; height: 7px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--accent); }
-
-        .progress { height: 6px; background: var(--border); overflow: hidden; }
-        .progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .3s ease; }
-
-        .skeleton { background: linear-gradient(100deg, var(--panel) 30%, var(--panel2) 50%, var(--panel) 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite; height: 300px; border: 1px solid var(--border); }
+        ::-webkit-scrollbar-thumb { background: var(--violet); }
+        .skeleton { background: linear-gradient(100deg, var(--panel) 30%, var(--panel2) 50%, var(--panel) 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite; height: 280px; border: 1px solid var(--border); }
         @keyframes shimmer { to { background-position: -200% 0; } }
-
-        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+        .hide { display: none !important; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+        @media (max-width: 640px) { .h2 { font-size: 1.45rem; } .podium .p { padding: 9px 5px; } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen">
+
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
 
     <!-- ======================= الشريط العلوي ======================= -->
-    <header class="sticky top-0 z-40 backdrop-blur-md border-b" style="background: color-mix(in srgb, var(--bg) 88%, transparent); border-color: var(--border);">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <a href="index.html" class="flex items-center gap-3 shrink-0">
-                <div class="w-3 h-8 skew-x-[-15deg]" style="background: var(--accent)"></div>
+    <header class="sticky top-0 z-40 backdrop-blur-xl border-b" style="background: color-mix(in srgb, var(--bg) 78%, transparent); border-color: var(--border)">
+        <div class="max-w-6xl mx-auto px-3 py-2.5 flex items-center justify-between gap-2">
+            <a href="index.html" class="flex items-center gap-2.5 shrink-0">
+                <div class="w-2.5 h-8 skew-x-[-14deg]" style="background: linear-gradient(var(--gold), var(--violet))"></div>
                 <div>
-                    <div class="font-tech text-lg md:text-xl font-black tracking-wider">THE LONG <span class="accent">PASS</span></div>
-                    <div class="text-[10px] accent2 tracking-widest font-semibold hidden sm:block">🎓 STUDENTS ZONE // منطقة الطلاب</div>
+                    <div class="font-tech text-base md:text-lg font-black tracking-widest">THE LONG <span class="gold">PASS</span></div>
+                    <div class="text-[9px] gold tracking-[.3em] font-bold hidden sm:block">⚜ ROYAL ACADEMY</div>
                 </div>
             </a>
 
-            <nav class="hidden md:flex items-center gap-1 text-sm font-bold">
-                <a href="#posts" class="px-3 py-2 muted hover:text-[color:var(--accent)] transition">المنشورات</a>
-                <a href="#chat" class="px-3 py-2 muted hover:text-[color:var(--accent)] transition">💬 الدردشة</a>
-                <a href="#ranking" class="px-3 py-2 muted hover:text-[color:var(--accent)] transition">🏆 الترتيب</a>
-                <a href="index.html" class="px-3 py-2 muted hover:text-[color:var(--accent)] transition">← الموقع الرئيسي</a>
+            <nav class="hidden lg:flex items-center gap-0.5 text-[13px] font-bold">
+                <a href="#ann" class="px-2.5 py-2 muted hover:gold transition">📣 الإعلانات</a>
+                <a href="#feed" class="px-2.5 py-2 muted hover:gold transition">🗂 المحتوى</a>
+                <a href="#members" class="px-2.5 py-2 muted hover:gold transition">👥 الأعضاء</a>
+                <a href="#hall" class="px-2.5 py-2 muted hover:gold transition">🏆 القاعة</a>
+                <a href="#chat" class="px-2.5 py-2 muted hover:gold transition">💬 الدردشة</a>
             </nav>
 
-            <div class="flex items-center gap-2">
-                <button id="theme-btn" type="button" class="btn btn-soft btn-sm" aria-label="تبديل الوضع" title="تبديل الوضع"><span>☀️</span></button>
+            <div class="flex items-center gap-1.5">
+                <button id="theme-btn" type="button" class="btn btn-soft btn-icon" aria-label="تبديل الوضع"><span>☀️</span></button>
                 <button id="admin-btn" type="button" class="btn btn-ghost btn-sm font-tech hidden">[ ADMIN ]</button>
-                <div id="user-chip" class="hidden items-center gap-2 cursor-pointer px-2 py-1.5" style="background: var(--panel2); border: 1px solid var(--border)" title="ملفي الشخصي">
-                    <div class="w-8 h-8 rounded-full overflow-hidden grid place-items-center font-black text-sm shrink-0" style="background: rgba(var(--accent-rgb),.15); color: var(--accent)" id="chip-avatar"></div>
-                    <div class="hidden sm:block leading-tight">
-                        <div class="text-xs font-black" id="chip-name"></div>
-                        <div class="text-[10px] accent2 font-bold" id="chip-level"></div>
-                    </div>
-                    <div class="text-xs font-tech font-black accent pr-1" id="chip-points"></div>
+                <button id="notif-btn" type="button" class="btn btn-soft btn-icon relative" aria-label="الإشعارات" title="الإشعارات">🔔<span id="notif-count" class="badge-dot hide"></span></button>
+                <div id="user-chip" class="hidden items-center gap-2 cursor-pointer px-2 py-1.5 frame" style="background: var(--panel2)" title="ملفي">
+                    <div class="w-8 h-8 rounded-full overflow-hidden grid place-items-center font-black text-sm shrink-0" style="background: rgba(var(--gold-rgb),.18); color: var(--gold)" id="chip-avatar"></div>
+                    <div class="hidden sm:block leading-tight"><div class="text-[11px] font-black" id="chip-name"></div><div class="text-[9.5px] gold font-bold" id="chip-level"></div></div>
+                    <div class="text-[11px] font-tech font-black gold ps-1" id="chip-points"></div>
                 </div>
-                <button id="auth-btn" type="button" class="btn btn-primary btn-sm">دخول / تسجيل</button>
-                <button id="menu-btn" type="button" class="btn btn-soft btn-sm md:hidden" aria-label="القائمة">☰</button>
+                <button id="auth-btn" type="button" class="btn btn-gold btn-sm">دخول</button>
+                <button id="menu-btn" type="button" class="btn btn-soft btn-icon lg:hidden" aria-label="القائمة">☰</button>
             </div>
         </div>
-        <div id="mobile-menu" class="hidden md:hidden px-4 pb-3 text-sm font-bold">
-            <a href="#posts" class="block px-3 py-2 muted">المنشورات</a>
-            <a href="#chat" class="block px-3 py-2 muted">💬 الدردشة</a>
-            <a href="#ranking" class="block px-3 py-2 muted">🏆 الترتيب</a>
-            <a href="index.html" class="block px-3 py-2 muted">← الموقع الرئيسي</a>
+        <div id="mobile-menu" class="hidden lg:hidden px-3 pb-2.5 text-sm font-bold grid grid-cols-2 gap-1">
+            <a href="#ann" class="block px-3 py-2 muted frame">📣 الإعلانات</a>
+            <a href="#feed" class="block px-3 py-2 muted frame">🗂 المحتوى</a>
+            <a href="#members" class="block px-3 py-2 muted frame">👥 الأعضاء</a>
+            <a href="#hall" class="block px-3 py-2 muted frame">🏆 القاعة</a>
+            <a href="#chat" class="block px-3 py-2 muted frame">💬 الدردشة</a>
+            <a href="index.html" class="block px-3 py-2 muted frame">← الرئيسية</a>
         </div>
     </header>
 
-    <!-- ======================= لقب الأسبوع ======================= -->
-    <section id="award-banner" class="max-w-7xl mx-auto px-4 pt-6 w-full" hidden>
-        <div class="panel-box p-4 md:p-5 flex items-center gap-4" style="border-color: rgba(var(--accent2-rgb),.5); background: linear-gradient(120deg, rgba(var(--accent2-rgb),.08), var(--panel))">
-            <div class="text-4xl md:text-5xl">🏆</div>
-            <div class="flex-1 min-w-0">
-                <div class="text-[10px] font-tech tracking-[.3em] accent2 mb-1">// WEEKLY CHAMPION</div>
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span class="text-xl md:text-2xl font-black" id="award-title"></span>
-                    <span class="font-black" id="award-user"></span>
-                </div>
-                <p class="muted text-sm mt-1" id="award-note"></p>
+    <!-- ======================= لوحة الإشعارات ======================= -->
+    <aside id="notif-panel" aria-label="الإشعارات">
+        <div class="flex items-center justify-between p-3.5 border-b" style="border-color: var(--border)">
+            <div>
+                <div class="kicker">// ALERTS</div>
+                <div class="font-black">الإشعارات</div>
+            </div>
+            <div class="flex gap-1.5">
+                <button id="notif-readall" class="btn btn-soft btn-sm">قرأت الكل</button>
+                <button id="notif-close" class="btn btn-soft btn-sm">✕</button>
             </div>
         </div>
-    </section>
+        <div id="notif-list" class="flex-1 overflow-y-auto"></div>
+    </aside>
 
-    <!-- ======================= بطاقة الملف الشخصي ======================= -->
-    <section id="profile" class="max-w-7xl mx-auto px-4 py-8 w-full">
-        <div id="profile-card" class="panel-box p-6 md:p-8 hidden">
-            <div class="flex flex-col md:flex-row items-center gap-6">
-                <div class="relative w-28 h-28 shrink-0">
-                    <div class="avatar-ring absolute inset-0 rounded-full"></div>
-                    <div id="prof-avatar" class="absolute inset-[4px] rounded-full overflow-hidden grid place-items-center font-tech text-4xl font-black" style="background: var(--panel); color: var(--accent)"></div>
+    <!-- ======================= البطاقة الشخصية ======================= -->
+    <section class="max-w-6xl mx-auto px-3 pt-6">
+        <div id="profile-card" class="frame royal p-5 md:p-7 hidden">
+            <div class="flex flex-col md:flex-row items-center gap-5">
+                <div class="relative w-24 h-24 shrink-0">
+                    <div class="ring-royal absolute inset-0 rounded-full"></div>
+                    <div id="prof-avatar" class="absolute inset-[4px] rounded-full overflow-hidden grid place-items-center font-tech text-3xl font-black" style="background: var(--panel); color: var(--gold)"></div>
                 </div>
                 <div class="flex-1 text-center md:text-right">
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
@@ -212,85 +356,142 @@
                     </div>
                     <p class="muted text-sm font-tech" id="prof-username" dir="ltr"></p>
                     <div class="mt-3 max-w-md">
-                        <div class="flex justify-between text-xs font-bold mb-1">
-                            <span class="accent font-tech" id="prof-points"></span>
-                            <span class="muted" id="prof-next"></span>
-                        </div>
+                        <div class="flex justify-between text-[11.5px] font-bold mb-1"><span class="gold font-tech" id="prof-points"></span><span class="muted" id="prof-next"></span></div>
                         <div class="progress"><i id="prof-progress" style="width:0%"></i></div>
                     </div>
-                    <p class="muted text-xs mt-3">كيف تكسب النقاط؟ دخول يومي <b class="accent">+2</b> · إعجاب <b class="accent">+1</b> · تعليق <b class="accent">+2</b> · مشاركة منشور <b class="accent">+3</b></p>
+                    <p class="muted text-[11px] mt-2.5">نقاط: دخول +2 · إعجاب +1 · تعليق +2 · مشاركة +3</p>
                 </div>
                 <div class="flex flex-col gap-2 shrink-0">
-                    <button type="button" id="edit-profile-btn" class="btn btn-cyan btn-sm">✏️ تعديل ملفي</button>
+                    <button type="button" id="edit-profile-btn" class="btn btn-gold btn-sm">✏️ تعديل ملفي</button>
                     <button type="button" id="logout-btn" class="btn btn-soft btn-sm">خروج</button>
                 </div>
             </div>
         </div>
-        <div id="profile-guest" class="panel-box p-8 text-center">
-            <div class="text-4xl mb-3">🎓</div>
-            <h2 class="text-2xl font-black mb-2">مرحباً بك في منطقة الطلاب</h2>
-            <p class="muted max-w-xl mx-auto">أنشئ حسابك الشخصي لتكسب النقاط وترتقي بالمستويات، وتعليق على المنشورات، والمشاركة في الدردشة، والمنافسة على لقب <b class="accent2">أسطورة الأسبوع</b>!</p>
-            <button type="button" id="guest-join" class="btn btn-primary mt-5">🚀 إنشاء حسابي الآن</button>
+        <div id="profile-guest" class="frame royal p-7 text-center">
+            <div class="text-4xl mb-2">⚜️</div>
+            <h2 class="text-2xl font-black mb-1.5">بوابة الأكاديمية الملكية</h2>
+            <p class="muted max-w-lg mx-auto text-sm">أنشئ حسابك لتكسب النقاط وترتقي بالمستويات، وتنافس على لقب <b class="gold">أسطورة الأسبوع</b>.</p>
+            <button type="button" id="guest-join" class="btn btn-gold mt-4">انضم الآن</button>
         </div>
     </section>
 
-    <!-- ======================= المنشورات ======================= -->
-    <main id="posts" class="max-w-7xl mx-auto px-4 pb-12 w-full flex-grow">
-        <div class="text-center mb-6">
-            <p class="font-tech text-xs tracking-[.3em] accent2 mb-2">// STUDENTS FEED</p>
-            <h2 class="text-3xl md:text-4xl font-black">منشورات الطلاب</h2>
+    <!-- ======================= الإعلانات ======================= -->
+    <section id="ann" class="max-w-6xl mx-auto px-3 pt-10">
+        <div class="section-head">
+            <div class="kicker">// ROYAL DECREES</div>
+            <h2 class="h2">📣 الإعلانات والأخبار</h2>
+            <div class="rule"></div>
         </div>
-        <div class="flex flex-wrap justify-center gap-2 mb-8" id="section-nav">
-            <button type="button" data-sec="ALL" class="btn btn-sm btn-primary">الكل</button>
+        <div id="ann-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- ======================= المحتوى ======================= -->
+    <main id="feed" class="max-w-6xl mx-auto px-3 pt-10">
+        <div class="section-head">
+            <div class="kicker">// ARCHIVES</div>
+            <h2 class="h2">🗂 الشروحات والملفات والفيديوهات</h2>
+            <div class="rule"></div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-2 mb-3" id="section-nav">
+            <button type="button" data-sec="ALL" class="btn btn-sm btn-gold">الكل</button>
             <button type="button" data-sec="guides" class="btn btn-sm btn-soft">📘 شروحات</button>
             <button type="button" data-sec="files" class="btn btn-sm btn-soft">📦 ملفات</button>
             <button type="button" data-sec="videos" class="btn btn-sm btn-soft">🎬 فيديوهات</button>
         </div>
-        <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="file-filter" class="text-center mb-4 hide">
+            <span class="chip chip-gold">عرض الملف <b id="file-filter-no"></b></span>
+            <button id="file-filter-clear" class="btn btn-soft btn-sm ms-1">✕ إلغاء الفلتر</button>
+        </div>
+        <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
         </div>
     </main>
 
-    <!-- ======================= الدردشة ======================= -->
-    <section id="chat" class="max-w-3xl mx-auto px-4 pb-16 w-full">
-        <div class="text-center mb-6">
-            <p class="font-tech text-xs tracking-[.3em] accent2 mb-2">// LIVE CHAT</p>
-            <h2 class="text-3xl font-black">💬 دردشة الطلاب</h2>
+    <!-- ======================= الأعضاء ======================= -->
+    <section id="members" class="max-w-6xl mx-auto px-3 pt-12">
+        <div class="section-head">
+            <div class="kicker">// THE ORDER</div>
+            <h2 class="h2">👥 أعضاء الأكاديمية</h2>
+            <div class="rule"></div>
         </div>
-        <div id="chat-login-hint" class="panel-box p-6 text-center">
-            <p class="muted">سجّل الدخول للمشاركة في الدردشة.</p>
-            <button type="button" id="chat-join" class="btn btn-cyan mt-4">دخول / تسجيل</button>
-        </div>
-        <div id="chat-box" class="panel-box hidden">
-            <div class="msg-scroll p-3 flex flex-col gap-2" id="chat-list" style="max-height: 440px"></div>
-            <div class="border-t p-3" style="border-color: var(--border)">
-                <div class="flex items-end gap-2">
-                    <div class="flex-1">
-                        <textarea id="chat-input" rows="1" class="field resize-none" placeholder="اكتب رسالتك..." maxlength="500"></textarea>
-                    </div>
-                    <button type="button" id="chat-attach" class="btn btn-soft btn-sm" title="إرفاق صورة أو PDF (5MB كحد أقصى)">📎</button>
-                    <button type="button" id="chat-mic" class="btn btn-soft btn-sm" title="تسجيل رسالة صوتية">🎤</button>
-                    <input type="file" id="chat-file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" class="hidden">
-                    <button type="button" id="chat-send" class="btn btn-primary btn-sm font-tech">SEND</button>
+        <div id="welcome-strip" class="frame royal p-4 mb-5 hide">
+            <div class="flex items-center gap-3">
+                <div class="text-3xl">🎉</div>
+                <div class="flex-1">
+                    <div class="font-black text-sm gold">ترحيب بالأعضاء الجدد</div>
+                    <div id="welcome-names" class="text-sm muted"></div>
                 </div>
-                <div id="chat-file-info" class="text-xs accent2 mt-2 hidden"></div>
-                <p class="text-[10px] muted mt-2">📎 يُسمح بالصور و PDF فقط — بحد 5 ميغابايت · 🎤 رسالة صوتية حتى 60 ثانية.</p>
+            </div>
+        </div>
+        <div id="members-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3"></div>
+    </section>
+
+    <!-- ======================= قاعة المشاهير ======================= -->
+    <section id="hall" class="max-w-4xl mx-auto px-3 pt-12">
+        <div class="section-head">
+            <div class="kicker">// HALL OF LEGENDS</div>
+            <h2 class="h2">🏆 قاعة الأساطير</h2>
+            <div class="rule"></div>
+        </div>
+
+        <div id="award-banner" class="frame hall champ p-5 mb-6 relative hide">
+            <div class="confetti" id="confetti"></div>
+            <div class="relative flex items-center gap-4">
+                <div class="text-5xl"><span class="crown">👑</span></div>
+                <div class="flex-1">
+                    <div class="kicker">// WEEKLY CHAMPION</div>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                        <span class="text-xl md:text-2xl font-black gold" id="award-title"></span>
+                        <span class="font-black" id="award-user"></span>
+                    </div>
+                    <p class="muted text-sm mt-1" id="award-note"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="podium" class="podium mb-5"></div>
+        <div id="ranking-list" class="flex flex-col gap-2"></div>
+    </section>
+
+    <!-- ======================= الدردشة ======================= -->
+    <section id="chat" class="max-w-3xl mx-auto px-3 pt-12 pb-16">
+        <div class="section-head">
+            <div class="kicker">// LIVE COMMS</div>
+            <h2 class="h2">💬 دردشة الطلاب</h2>
+            <div class="rule"></div>
+        </div>
+        <div id="chat-login-hint" class="frame p-6 text-center">
+            <p class="muted text-sm mb-3">سجّل الدخول للمشاركة في الدردشة.</p>
+            <button type="button" id="chat-join" class="btn btn-cyan">دخول / تسجيل</button>
+        </div>
+
+        <div id="chat-box" class="frame chat-shell hidden">
+            <div class="chat-head">
+                <div class="w-9 h-9 rounded-full grid place-items-center" style="background: rgba(var(--violet-rgb),.2); color: var(--violet)">💬</div>
+                <div class="flex-1 leading-tight">
+                    <div class="font-black text-sm">ساحة الطلاب</div>
+                    <div class="text-[10.5px] muted">محادثة مباشرة · صوت وصور</div>
+                </div>
+                <button id="chat-jump" type="button" class="btn btn-soft btn-sm hide" title="آخر الرسائل">⬇</button>
+            </div>
+            <div class="chat-body" id="chat-list"></div>
+            <div class="composer">
+                <div id="chat-file-info" class="text-[11.5px] gold mb-1.5 hidden"></div>
+                <div class="row">
+                    <textarea id="chat-input" rows="1" class="field" placeholder="اكتب رسالة..." maxlength="500"></textarea>
+                    <button type="button" id="chat-attach" class="btn btn-soft btn-icon" title="إرفاق صورة أو PDF">📎</button>
+                    <button type="button" id="chat-mic" class="btn btn-soft btn-icon" title="رسالة صوتية">🎤</button>
+                    <input type="file" id="chat-file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,audio/*" class="hidden">
+                    <button type="button" id="chat-send" class="btn btn-gold btn-icon font-tech" title="إرسال">➤</button>
+                </div>
+                <p class="text-[10px] muted mt-1.5">صور · PDF · صوت (حتى 60 ثانية) — بحد 4.4 ميغابايت</p>
             </div>
         </div>
     </section>
 
-    <!-- ======================= الترتيب ======================= -->
-    <section id="ranking" class="max-w-3xl mx-auto px-4 pb-20 w-full">
-        <div class="text-center mb-6">
-            <p class="font-tech text-xs tracking-[.3em] accent2 mb-2">// LEADERBOARD</p>
-            <h2 class="text-3xl font-black">🏆 لوحة الشرف</h2>
-        </div>
-        <div id="ranking-list" class="flex flex-col gap-2"></div>
-    </section>
-
-    <footer class="border-t mt-auto" style="border-color: var(--border); background: var(--panel)">
-        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
-            <div class="font-tech font-black tracking-wider">THE LONG <span class="accent">PASS</span></div>
+    <footer class="border-t mt-6 py-5" style="border-color: var(--border)">
+        <div class="max-w-6xl mx-auto px-3 flex flex-col md:flex-row items-center justify-between gap-2 text-xs">
+            <div class="font-tech font-black tracking-widest">THE LONG <span class="gold">PASS</span></div>
             <div class="muted">© <span id="year"></span> منطقة الطلاب</div>
             <a href="index.html" class="btn btn-soft btn-sm">الصفحة الرئيسية</a>
         </div>
@@ -299,13 +500,16 @@
     <div id="toasts"></div>
 
     <!-- ======================= نافذة المنشور ======================= -->
-    <div id="post-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="panel-box max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6" style="border-color: var(--accent)">
+    <div id="post-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-3">
+        <div class="frame max-w-3xl w-full max-h-[92vh] overflow-y-auto p-5 md:p-6" style="border-color: rgba(var(--gold-rgb),.6)">
             <div class="flex justify-between items-center pb-3 mb-4 border-b" style="border-color: var(--border)">
-                <span id="modal-sec" class="font-tech text-xs px-2.5 py-1 accent" style="background: rgba(var(--accent-rgb),.14); border: 1px solid rgba(var(--accent-rgb),.4)"></span>
+                <div class="flex items-center gap-2">
+                    <span id="modal-sec" class="chip chip-gold font-tech"></span>
+                    <span id="modal-filebadge" class="chip hide"></span>
+                </div>
                 <div class="flex gap-2">
-                    <button type="button" id="share-btn" class="btn btn-soft btn-sm">🔗 مشاركة <span class="accent">+3</span></button>
-                    <button type="button" data-close="post-modal" class="btn btn-danger btn-sm">✕ إغلاق</button>
+                    <button type="button" id="share-btn" class="btn btn-soft btn-sm">🔗 مشاركة <span class="gold">+3</span></button>
+                    <button type="button" data-close="post-modal" class="btn btn-danger btn-sm">✕</button>
                 </div>
             </div>
             <h2 id="modal-title" class="text-2xl font-black mb-3"></h2>
@@ -314,23 +518,21 @@
             <p id="modal-content" class="leading-relaxed whitespace-pre-line mb-5"></p>
 
             <div id="modal-files-wrap" class="mb-5" hidden>
-                <h3 class="font-black mb-3">📥 الملفات المرفقة <span id="modal-files-count" class="chip"></span></h3>
+                <h3 class="font-black mb-2.5">📥 الملفات المرفقة <span id="modal-files-count" class="chip"></span></h3>
                 <div id="modal-files" class="flex flex-col gap-2"></div>
             </div>
-
             <div id="modal-link-box" class="mb-5"></div>
 
-            <div class="flex items-center gap-3 mb-5 pb-5 border-b" style="border-color: var(--border)">
+            <div class="flex items-center gap-3 mb-5 pb-4 border-b" style="border-color: var(--border)">
                 <button type="button" id="like-btn" class="like-btn"><span class="heart">🤍</span> <span id="like-count">0</span></button>
-                <span class="text-xs muted">الإعجاب يمنحك نقطة!</span>
+                <span class="text-[11px] muted">الإعجاب يمنحك نقطة</span>
                 <div id="modal-admin-box" class="hidden gap-2 ms-auto">
-                    <button type="button" id="sedit-btn" class="btn btn-cyan btn-sm">✏️ تعديل</button>
-                    <button type="button" id="sdelete-btn" class="btn btn-danger btn-sm">🗑 حذف</button>
+                    <button type="button" id="sedit-btn" class="btn btn-cyan btn-sm">✏️</button>
+                    <button type="button" id="sdelete-btn" class="btn btn-danger btn-sm">🗑</button>
                 </div>
             </div>
 
-            <!-- التعليقات -->
-            <h3 class="font-black mb-3">💬 التعليقات <span id="comments-count" class="chip"></span></h3>
+            <h3 class="font-black mb-2.5">💬 التعليقات <span id="comments-count" class="chip"></span></h3>
             <div id="comments-list" class="flex flex-col gap-2 mb-4"></div>
             <div id="comment-form" class="hidden">
                 <div id="c-file-preview" class="file-row mb-2 hidden">
@@ -339,166 +541,162 @@
                     <button type="button" id="c-file-remove" class="btn btn-danger btn-sm">✕</button>
                 </div>
                 <div class="flex items-end gap-2">
-                    <textarea id="c-input" rows="2" class="field resize-none flex-1" placeholder="اكتب تعليقك..." maxlength="1000"></textarea>
-                    <div class="flex flex-col gap-2">
-                        <button type="button" id="c-attach" class="btn btn-soft btn-sm" title="إرفاق صورة أو PDF">📎</button>
+                    <textarea id="c-input" rows="2" class="field resize-none flex-1" placeholder="اكتب تعليقاً..." maxlength="1000"></textarea>
+                    <div class="flex flex-col gap-1.5">
+                        <button type="button" id="c-attach" class="btn btn-soft btn-sm" title="إرفاق">📎</button>
                         <input type="file" id="c-file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" class="hidden">
-                        <button type="button" id="c-send" class="btn btn-primary btn-sm font-tech">SEND</button>
+                        <button type="button" id="c-send" class="btn btn-gold btn-sm font-tech">➤</button>
                     </div>
                 </div>
-                <p class="text-[10px] muted mt-1">📎 يُسمح بالصور و PDF فقط — بحد 3 ميغابايت.</p>
             </div>
-            <p id="comment-guest-hint" class="muted text-sm">سجّل الدخول لتكتب تعليقاً وتكسب نقاط.</p>
+            <p id="comment-guest-hint" class="muted text-sm">سجّل الدخول لتكتب تعليقاً وتكسب نقاطاً.</p>
         </div>
     </div>
 
-    <!-- ======================= نافذة الدخول / التسجيل ======================= -->
-    <div id="auth-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="panel-box max-w-md w-full p-6" style="border-color: var(--accent2)">
-            <div class="flex justify-between items-center pb-3 mb-5 border-b" style="border-color: var(--border)">
-                <h2 class="font-tech text-lg accent2 font-bold">// JOIN THE ACADEMY</h2>
-                <button type="button" data-close="auth-modal" class="btn btn-soft btn-sm">إغلاق</button>
+    <!-- ======================= نافذة الدخول ======================= -->
+    <div id="auth-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-3">
+        <div class="frame max-w-md w-full p-5" style="border-color: rgba(var(--gold-rgb),.55)">
+            <div class="flex justify-between items-center pb-3 mb-4 border-b" style="border-color: var(--border)">
+                <h2 class="font-tech text-base gold font-bold">// JOIN THE ORDER</h2>
+                <button type="button" data-close="auth-modal" class="btn btn-soft btn-sm">✕</button>
             </div>
-            <div class="flex gap-1 mb-5 border-b" style="border-color: var(--border)">
+            <div class="flex gap-1 mb-4 border-b" style="border-color: var(--border)">
                 <button type="button" class="tab-btn active" data-atab="login">دخول</button>
                 <button type="button" class="tab-btn" data-atab="signup">حساب جديد</button>
             </div>
-
-            <form id="login-form" class="space-y-4">
+            <form id="login-form" class="space-y-3">
                 <div><label class="label">البريد الإلكتروني</label><input type="email" id="l-email" required autocomplete="username" dir="ltr" class="field"></div>
                 <div><label class="label">كلمة المرور</label><input type="password" id="l-pass" required autocomplete="current-password" dir="ltr" class="field"></div>
-                <button type="submit" id="login-btn" class="btn btn-cyan w-full font-tech tracking-wider">LOGIN // دخول</button>
+                <button type="submit" id="login-btn" class="btn btn-gold w-full font-tech tracking-widest">LOGIN</button>
             </form>
-
-            <form id="signup-form" class="space-y-4 hidden">
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="label">الاسم المعروض</label><input type="text" id="u-display" required maxlength="30" class="field" placeholder="مثال: يوسف"></div>
-                    <div><label class="label">اسم المستخدم (إنجليزي)</label><input type="text" id="u-username" required maxlength="20" pattern="[a-zA-Z0-9_]{3,20}" dir="ltr" class="field" placeholder="yousef_gamer"></div>
+            <form id="signup-form" class="space-y-3 hidden">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div><label class="label">الاسم المعروض</label><input type="text" id="u-display" required maxlength="30" class="field" placeholder="يوسف"></div>
+                    <div><label class="label">اسم المستخدم</label><input type="text" id="u-username" required maxlength="20" pattern="[a-zA-Z0-9_]{3,20}" dir="ltr" class="field" placeholder="yousef_g"></div>
                 </div>
                 <div><label class="label">البريد الإلكتروني</label><input type="email" id="u-email" required autocomplete="username" dir="ltr" class="field"></div>
-                <div><label class="label">كلمة المرور (6 أحرف على الأقل)</label><input type="password" id="u-pass" required minlength="6" autocomplete="new-password" dir="ltr" class="field"></div>
-                <button type="submit" id="signup-btn" class="btn btn-primary w-full font-tech tracking-wider">CREATE ACCOUNT // إنشاء حساب</button>
-                <p class="text-[11px] muted text-center">بإنشائك حساباً توافق على احترام الأعضاء الآخرين. تُمنح نقاطاً عند كل نشاط، وترتقي بالمستويات تلقائياً!</p>
+                <div><label class="label">كلمة المرور (6+)</label><input type="password" id="u-pass" required minlength="6" autocomplete="new-password" dir="ltr" class="field"></div>
+                <button type="submit" id="signup-btn" class="btn btn-violet w-full font-tech tracking-widest">CREATE</button>
             </form>
             <p id="auth-status" class="text-center text-xs font-bold mt-3"></p>
-            <button type="button" id="resend-btn" class="btn btn-soft w-full mt-3 hidden text-xs">📧 إرسال رابط تأكيد البريد</button>
+            <button type="button" id="resend-btn" class="btn btn-soft w-full mt-2.5 hidden text-xs">📧 إرسال رابط تأكيد البريد</button>
         </div>
     </div>
 
-    <!-- ======================= نافذة تعديل الملف الشخصي ======================= -->
-    <div id="profile-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="panel-box max-w-md w-full p-6" style="border-color: var(--accent2)">
-            <div class="flex justify-between items-center pb-3 mb-5 border-b" style="border-color: var(--border)">
-                <h2 class="font-tech text-lg accent2 font-bold">// MY PROFILE</h2>
-                <button type="button" data-close="profile-modal" class="btn btn-soft btn-sm">إغلاق</button>
+    <!-- ======================= نافذة الملف الشخصي ======================= -->
+    <div id="profile-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-3">
+        <div class="frame max-w-md w-full p-5" style="border-color: rgba(var(--gold-rgb),.55)">
+            <div class="flex justify-between items-center pb-3 mb-4 border-b" style="border-color: var(--border)">
+                <h2 class="font-tech text-base gold font-bold">// MY SIGIL</h2>
+                <button type="button" data-close="profile-modal" class="btn btn-soft btn-sm">✕</button>
             </div>
-            <form id="profile-form" class="space-y-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-full overflow-hidden grid place-items-center font-black text-xl shrink-0" style="background: rgba(var(--accent-rgb),.15); color: var(--accent)" id="pf-avatar-preview"></div>
-                    <div class="flex-1">
-                        <label class="label">صورة البروفايل (صور فقط، بحد 3 ميغابايت)</label>
-                        <input type="file" id="pf-avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="field text-xs">
-                    </div>
+            <form id="profile-form" class="space-y-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-16 h-16 rounded-full overflow-hidden grid place-items-center font-black text-xl shrink-0" style="background: rgba(var(--gold-rgb),.16); color: var(--gold)" id="pf-avatar-preview"></div>
+                    <div class="flex-1"><label class="label">صورة الملف (حتى 4 م.ب)</label><input type="file" id="pf-avatar" accept="image/*" class="field text-xs"></div>
                 </div>
                 <div><label class="label">الاسم المعروض</label><input type="text" id="pf-display" maxlength="30" required class="field"></div>
-                <div><label class="label">اسم المستخدم (لا يمكن تغييره لاحقاً بسهولة)</label><input type="text" id="pf-username" maxlength="20" pattern="[a-zA-Z0-9_]{3,20}" dir="ltr" required class="field"></div>
-                <button type="submit" id="pf-save" class="btn btn-primary w-full">حفظ التغييرات</button>
+                <div><label class="label">اسم المستخدم</label><input type="text" id="pf-username" maxlength="20" pattern="[a-zA-Z0-9_]{3,20}" dir="ltr" required class="field"></div>
+                <button type="submit" id="pf-save" class="btn btn-gold w-full">حفظ</button>
             </form>
         </div>
     </div>
 
     <!-- ======================= لوحة الإدارة ======================= -->
-    <div id="admin-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="panel-box max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6" style="border-color: var(--accent2)">
+    <div id="admin-modal" class="overlay fixed inset-0 z-50 hidden items-center justify-center p-3">
+        <div class="frame max-w-3xl w-full max-h-[92vh] overflow-y-auto p-5" style="border-color: rgba(var(--gold-rgb),.6)">
             <div class="flex justify-between items-center pb-3 mb-2 border-b" style="border-color: var(--border)">
-                <h2 class="font-tech text-lg accent2 font-bold">// STUDENTS COMMAND CENTER</h2>
+                <h2 class="font-tech text-base gold font-bold">// COMMAND CENTER</h2>
                 <button type="button" data-close="admin-modal" class="btn btn-danger btn-sm">إغلاق</button>
             </div>
-            <div class="flex gap-1 mb-5 border-b overflow-x-auto" style="border-color: var(--border)">
-                <button type="button" class="tab-btn active" data-mtab="a-new">✍️ نشر جديد</button>
+            <div class="flex gap-1 mb-4 border-b overflow-x-auto" style="border-color: var(--border)">
+                <button type="button" class="tab-btn active" data-mtab="a-ann">📣 إعلان</button>
+                <button type="button" class="tab-btn" data-mtab="a-new">✍️ منشور</button>
                 <button type="button" class="tab-btn" data-mtab="a-manage">🗂 المنشورات <span id="a-manage-count" class="chip">0</span></button>
                 <button type="button" class="tab-btn" data-mtab="a-students">🎓 الطلاب <span id="a-students-count" class="chip">0</span></button>
                 <button type="button" class="tab-btn" data-mtab="a-levels">⭐ المستويات</button>
-                <button type="button" class="tab-btn" data-mtab="a-award">🏆 لقب الأسبوع</button>
+                <button type="button" class="tab-btn" data-mtab="a-award">🏆 اللقب</button>
                 <button type="button" class="tab-btn" data-mtab="a-mod">🧹 إشراف</button>
             </div>
 
-            <!-- نشر جديد -->
-            <div id="a-new" class="mtab-pane">
-                <div id="s-edit-banner" class="hidden mb-4 p-3 text-sm font-bold items-center justify-between gap-3" style="background: rgba(var(--accent2-rgb),.1); border: 1px solid rgba(var(--accent2-rgb),.4)">
-                    <span>✏️ وضع التعديل: <span id="s-edit-label"></span></span>
+            <!-- إعلان -->
+            <div id="a-ann">
+                <form id="ann-form" class="space-y-3">
+                    <div><label class="label">عنوان الإعلان *</label><input type="text" id="an-title" required maxlength="160" class="field"></div>
+                    <div><label class="label">النص</label><textarea id="an-content" rows="3" class="field" maxlength="2000"></textarea></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="md:col-span-2"><label class="label">صورة الإعلان</label><input type="file" id="an-image" accept="image/*" class="field text-xs"><img id="an-image-preview" class="hidden mt-2 max-h-24 border" style="border-color: var(--border)" alt=""></div>
+                        <div><label class="label">رقم الملف المرتبط</label><input type="text" id="an-fileno" dir="ltr" class="field" placeholder="مثال: 27"></div>
+                    </div>
+                    <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" id="an-pinned"> 📌 تثبيت في الأعلى</label>
+                    <button type="submit" id="an-submit" class="btn btn-gold w-full font-tech tracking-widest py-2.5">PUBLISH DECREE</button>
+                    <p id="an-status" class="text-center text-xs gold font-bold min-h-[1rem]"></p>
+                </form>
+                <div class="mt-4"><h3 class="font-black text-sm mb-2">الإعلانات المنشورة</h3><div id="an-list" class="flex flex-col gap-2"></div></div>
+            </div>
+
+            <!-- منشور -->
+            <div id="a-new" class="mtab-pane hidden">
+                <div id="s-edit-banner" class="hidden mb-3 p-2.5 text-sm font-bold items-center justify-between gap-3" style="background: rgba(var(--gold-rgb),.1); border: 1px solid rgba(var(--gold-rgb),.45)">
+                    <span>✏️ تعديل: <span id="s-edit-label"></span></span>
                     <button type="button" id="s-cancel-edit" class="btn btn-soft btn-sm">إلغاء</button>
                 </div>
-                <form id="spublish-form" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <form id="spublish-form" class="space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <div class="md:col-span-2"><label class="label">العنوان *</label><input type="text" id="sp-title" required maxlength="200" class="field"></div>
-                        <div>
-                            <label class="label">القسم *</label>
-                            <select id="sp-section" class="field">
-                                <option value="guides">📘 شروحات</option>
-                                <option value="files">📦 ملفات</option>
-                                <option value="videos">🎬 فيديوهات</option>
-                            </select>
+                        <div><label class="label">القسم *</label>
+                            <select id="sp-section" class="field"><option value="guides">📘 شروحات</option><option value="files">📦 ملفات</option><option value="videos">🎬 فيديوهات</option></select>
                         </div>
+                        <div><label class="label">رقم الملف</label><input type="text" id="sp-fileno" dir="ltr" class="field" placeholder="27"></div>
                     </div>
-                    <div><label class="label">التفاصيل *</label><textarea id="sp-content" rows="5" required class="field"></textarea></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="label">صورة الغلاف</label><input type="file" id="sp-image" accept="image/*" class="field text-xs"><img id="sp-image-preview" class="hidden mt-2 max-h-28 border" style="border-color: var(--border)" alt=""></div>
+                    <div><label class="label">التفاصيل *</label><textarea id="sp-content" rows="4" required class="field"></textarea></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label class="label">صورة الغلاف</label><input type="file" id="sp-image" accept="image/*" class="field text-xs"><img id="sp-image-preview" class="hidden mt-2 max-h-24 border" style="border-color: var(--border)" alt=""></div>
                         <div><label class="label">فيديو</label><input type="file" id="sp-video" accept="video/*" class="field text-xs"></div>
                     </div>
                     <div>
                         <label class="label">ملفات للتحميل</label>
-                        <div id="sp-dropzone" class="dropzone"><div class="text-2xl mb-1">📦</div><div class="font-bold text-sm">اسحب الملفات هنا أو اضغط للاختيار</div><div class="text-xs muted mt-1">الحد الأقصى <span id="sp-max-size"></span></div><input type="file" id="sp-files" multiple class="hidden"></div>
-                        <div id="sp-file-list" class="flex flex-col gap-2 mt-3"></div>
+                        <div id="sp-dropzone" class="dropzone"><div class="text-xl mb-1">📦</div><div class="font-bold text-sm">اسحب أو اضغط للاختيار</div><div class="text-[11px] muted mt-1">الحد <span id="sp-max-size"></span></div><input type="file" id="sp-files" multiple class="hidden"></div>
+                        <div id="sp-file-list" class="flex flex-col gap-2 mt-2"></div>
                     </div>
-                    <div><label class="label">رابط خارجي (يوتيوب / تحميل خارجي)</label><input type="url" id="sp-link" dir="ltr" class="field" placeholder="https://..."></div>
+                    <div><label class="label">رابط خارجي</label><input type="url" id="sp-link" dir="ltr" class="field" placeholder="https://..."></div>
                     <div id="sp-progress-wrap" class="hidden"><div class="progress"><i id="sp-progress-bar"></i></div></div>
-                    <button type="submit" id="sp-submit" class="btn btn-primary w-full font-tech tracking-wider py-3">DEPLOY // نشر الآن</button>
-                    <p id="sp-status" class="text-center text-xs accent2 font-bold min-h-[1rem]"></p>
+                    <button type="submit" id="sp-submit" class="btn btn-gold w-full font-tech tracking-widest py-2.5">DEPLOY</button>
+                    <p id="sp-status" class="text-center text-xs gold font-bold min-h-[1rem]"></p>
                 </form>
             </div>
 
-            <!-- إدارة المنشورات -->
             <div id="a-manage" class="mtab-pane hidden"><div id="a-posts-list" class="flex flex-col gap-2"></div></div>
 
-            <!-- إدارة الطلاب -->
             <div id="a-students" class="mtab-pane hidden">
-                <p class="muted text-xs mb-3">حدّد النقاط يدوياً لأي طالب، أو احظره، أو احذف ملفه. الترتيب حسب النقاط.</p>
+                <p class="muted text-[11.5px] mb-2.5">عدّل النقاط، احظر، أو احذف. مرتبون حسب النقاط.</p>
                 <div id="a-students-list" class="flex flex-col gap-2"></div>
             </div>
 
-            <!-- المستويات -->
             <div id="a-levels" class="mtab-pane hidden">
-                <p class="muted text-xs mb-3">لكل مستوى حد أدنى من النقاط واسم EpIC يحفّز الطلاب. يرتقي الطالب تلقائياً حسب نقاطه.</p>
-                <div id="a-levels-list" class="flex flex-col gap-2 mb-3"></div>
+                <p class="muted text-[11.5px] mb-2.5">حد أدنى من النقاط لكل مستوى واسم ملحمي.</p>
+                <div id="a-levels-list" class="flex flex-col gap-2 mb-2.5"></div>
                 <div class="flex gap-2">
-                    <button type="button" id="levels-save" class="btn btn-primary flex-1">💾 حفظ المستويات</button>
-                    <button type="button" id="levels-add" class="btn btn-soft">➕ مستوى جديد</button>
+                    <button type="button" id="levels-save" class="btn btn-gold flex-1">💾 حفظ</button>
+                    <button type="button" id="levels-add" class="btn btn-soft">➕</button>
                 </div>
                 <p id="levels-status" class="text-xs text-center mt-2 font-bold"></p>
             </div>
 
-            <!-- لقب الأسبوع -->
             <div id="a-award" class="mtab-pane hidden">
-                <p class="muted text-xs mb-3">اختر الطالب الأكثر تفاعلاً هذا الأسبوع ومنحه اللقب الكبير. يظهر اللقب في أعلى الصفحة للجميع.</p>
-                <form id="award-form" class="space-y-4">
-                    <div><label class="label">الطالب الفائز</label><select id="aw-user" class="field"></select></div>
+                <form id="award-form" class="space-y-3">
+                    <div><label class="label">الطالب</label><select id="aw-user" class="field"></select></div>
                     <div><label class="label">اللقب</label><input type="text" id="aw-title" class="field" value="🥇 أسطورة الأسبوع" maxlength="60"></div>
-                    <div><label class="label">الأسبوع (اختياري)</label><input type="text" id="aw-week" class="field" placeholder="مثال: الأسبوع 46 - نوفمبر 2026"></div>
-                    <div><label class="label">ملاحظة / سبب الفوز (اختياري)</label><textarea id="aw-note" rows="2" class="field" placeholder="مثال: أكثر طالب تفاعلاً: تعليقات وإعجابات ودردشة"></textarea></div>
-                    <button type="submit" class="btn btn-primary w-full">🏆 منح اللقب</button>
+                    <div><label class="label">الأسبوع (اختياري)</label><input type="text" id="aw-week" class="field" placeholder="الأسبوع 46"></div>
+                    <div><label class="label">ملاحظة (اختياري)</label><textarea id="aw-note" rows="2" class="field"></textarea></div>
+                    <button type="submit" class="btn btn-gold w-full">🏆 منح اللقب</button>
                 </form>
-                <div class="mt-5">
-                    <h3 class="font-black text-sm mb-2">الألقاب السابقة</h3>
-                    <div id="aw-list" class="flex flex-col gap-2"></div>
-                </div>
+                <div class="mt-4"><h3 class="font-black text-sm mb-2">الألقاب السابقة</h3><div id="aw-list" class="flex flex-col gap-2"></div></div>
             </div>
 
-            <!-- إشراف -->
             <div id="a-mod" class="mtab-pane hidden">
-                <p class="muted text-xs mb-3">آخر التعليقات ورسائل الدردشة — احذف أي محتوى مخالف بضغطة واحدة.</p>
                 <h3 class="font-black text-sm mb-2">💬 آخر التعليقات</h3>
-                <div id="mod-comments" class="flex flex-col gap-2 mb-5"></div>
+                <div id="mod-comments" class="flex flex-col gap-2 mb-4"></div>
                 <h3 class="font-black text-sm mb-2">🗨️ آخر رسائل الدردشة</h3>
                 <div id="mod-chat" class="flex flex-col gap-2"></div>
             </div>
@@ -506,6 +704,7 @@
     </div>
 
     <script>
+
         // ==========================================================
         // الإعدادات (نفس الموقع الرئيسي)
         // ==========================================================
@@ -706,7 +905,13 @@
         }
         document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
         ['post-modal','auth-modal','profile-modal','admin-modal'].forEach(id => $(id).addEventListener('mousedown', (e) => { if (e.target.id === id) closeModal(id); }));
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') ['post-modal','auth-modal','profile-modal','admin-modal'].forEach(closeModal); });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                ['post-modal','auth-modal','profile-modal','admin-modal'].forEach(closeModal);
+                const np = document.getElementById('notif-panel');
+                if (np) np.classList.remove('open');
+            }
+        });
 
         // تبويبات نوافذ الدخول والإدارة
         document.querySelectorAll('[data-atab]').forEach(b => b.addEventListener('click', () => {
@@ -798,6 +1003,7 @@
             if (session) { loadChat(); renderChatComposer(); } else { $('chat-list').innerHTML = '<p class="muted text-sm text-center py-6">سجّل الدخول لرؤية الدردشة والمشاركة فيها.</p>'; }
             $('admin-btn').textContent = isAdmin ? '[ ADMIN ✓ ]' : '[ ADMIN ]';
             if (isAdmin) { loadAdminData(); }
+            loadNotifications();
         }
 
         $('auth-btn').addEventListener('click', () => openModal('auth-modal'));
@@ -813,6 +1019,7 @@
             openModal('profile-modal');
         }
         $('user-chip').addEventListener('click', openProfileEditor);
+        $('notif-panel').addEventListener('click', (e) => { if (e.target.id === 'notif-panel') closeNotif(); });
         $('edit-profile-btn').addEventListener('click', openProfileEditor);
 
         $('login-form').addEventListener('submit', async (e) => {
@@ -932,13 +1139,15 @@
             likesByPost = {}; myLikes = new Set();
             (lk.data || []).forEach(r => { likesByPost[r.post_id] = (likesByPost[r.post_id] || 0) + 1; if (session && r.user_id === session.user.id) myLikes.add(r.post_id); });
             const award = (aw.data || [])[0];
+            $('award-banner').classList.toggle('hide', !award);
             if (award) {
                 $('award-banner').hidden = false;
                 $('award-title').textContent = award.title || '🥇 أسطورة الأسبوع';
                 $('award-user').textContent = award.profiles ? (award.profiles.display_name || award.profiles.username) : '';
                 $('award-note').textContent = (award.week_label ? award.week_label + ' · ' : '') + (award.note || '');
             }
-            renderProfile(); if (!p.error) renderPosts(); renderRanking();
+            renderProfile(); if (!p.error) renderPosts();
+            renderRanking(); renderMembers(); loadAnnouncements(); loadNotifications();
             const m = location.hash.match(/^#post-(\d+)$/);
             if (m) { const p = posts.find(x => String(x.id) === m[1]); if (p) openPost(p); }
             if (isAdmin) renderAdminLists();
@@ -956,8 +1165,9 @@
 
         function renderPosts() {
             const grid = $('posts-grid'); grid.innerHTML = '';
-            const list = posts.filter(p => currentSection === 'ALL' || p.section === currentSection);
-            if (!list.length) { grid.innerHTML = '<div class="col-span-full text-center py-16 muted"><div class="text-5xl mb-3">📭</div>لا توجد منشورات في هذا القسم بعد.</div>'; return; }
+            let list = posts.filter(p => currentSection === 'ALL' || p.section === currentSection);
+            if (fileFilter) list = list.filter(p => String(p.file_no || '') === fileFilter);
+            if (!list.length) { grid.innerHTML = '<div class="col-span-full text-center py-14 muted"><div class="text-5xl mb-2">📭</div>' + (fileFilter ? 'لا يوجد منشور بهذا الرقم بعد.' : 'لا توجد منشورات في هذا القسم بعد.') + '</div>'; return; }
             list.forEach(p => {
                 const el = document.createElement('article');
                 el.className = 'card cursor-pointer flex flex-col overflow-hidden';
@@ -965,6 +1175,7 @@
                 el.innerHTML =
                     '<div class="relative h-44 overflow-hidden bg-black cursor-pointer" data-open>' + cardMedia(p) + '</div>' +
                     '<div class="p-4 flex-1 flex flex-col">' +
+                    (p.file_no ? '<span class="chip chip-gold mb-1.5 self-start font-tech" data-fno="' + esc(p.file_no) + '">ملف #' + esc(p.file_no) + '</span>' : '') +
                     '<h3 class="text-lg font-black mb-1 line-clamp-2" data-open>' + esc(p.title) + '</h3>' +
                     '<p class="muted text-sm line-clamp-3 flex-1">' + esc(p.content) + '</p>' +
                     '<div class="flex items-center justify-between mt-3 pt-3 border-t" style="border-color: var(--border)">' +
@@ -972,6 +1183,8 @@
                     '<span class="text-xs muted">💬 <span data-c="' + p.id + '">…</span> · ' + new Date(p.created_at).toLocaleDateString('ar-DZ') + '</span>' +
                     '</div></div>';
                 el.querySelectorAll('[data-open]').forEach(x => x.addEventListener('click', () => openPost(p)));
+                const fno = el.querySelector('[data-fno]');
+                if (fno) fno.addEventListener('click', (e) => { e.stopPropagation(); filterByFile(p.file_no); });
                 const lb = el.querySelector('[data-like]');
                 lb.addEventListener('click', (e) => { e.stopPropagation(); toggleLike(p, lb); });
                 grid.appendChild(el);
@@ -983,6 +1196,18 @@
                 document.querySelectorAll('[data-c]').forEach(el => { el.textContent = cnt[el.dataset.c] || 0; });
             });
         }
+
+        let fileFilter = null;
+        function filterByFile(no) {
+            fileFilter = String(no);
+            currentSection = 'ALL';
+            $('section-nav').querySelectorAll('button').forEach(x => { x.classList.toggle('btn-gold', x.dataset.sec === 'ALL'); x.classList.toggle('btn-soft', x.dataset.sec !== 'ALL'); });
+            $('file-filter').classList.remove('hide');
+            $('file-filter-no').textContent = '#' + no;
+            renderPosts();
+            document.getElementById('feed').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        $('file-filter-clear').addEventListener('click', () => { fileFilter = null; $('file-filter').classList.add('hide'); renderPosts(); });
 
         $('section-nav').addEventListener('click', (e) => {
             const b = e.target.closest('[data-sec]'); if (!b) return;
@@ -1038,6 +1263,8 @@
             $('modal-content').textContent = p.content || '';
             $('modal-meta').innerHTML = '<span class="chip">📅 ' + new Date(p.created_at).toLocaleDateString('ar-DZ') + '</span>' +
                 (p.attachments.length ? '<span class="chip">⬇ ' + (p.downloads || 0) + ' تحميل</span>' : '');
+            $('modal-filebadge').textContent = p.file_no ? 'ملف #' + p.file_no : '';
+            $('modal-filebadge').classList.toggle('hide', !p.file_no);
             $('modal-admin-box').classList.toggle('hidden', !isAdmin);
             $('modal-admin-box').classList.toggle('flex', isAdmin);
 
@@ -1165,37 +1392,76 @@
             $('chat-login-hint').classList.toggle('hidden', !!session);
             $('chat-box').classList.toggle('hidden', !session);
         }
+        function dayLabel(d) {
+            const t = new Date(); const x = new Date(d);
+            const same = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+            if (same(x,t)) return 'اليوم';
+            const y = new Date(t); y.setDate(y.getDate()-1);
+            if (same(x,y)) return 'أمس';
+            return x.toLocaleDateString('ar-DZ');
+        }
+        let lastSender = null, lastStamp = 0;
         async function loadChat() {
-            const { data } = await sb.from('chat_messages').select('*, profiles(username, display_name, avatar_url, points)').order('created_at', { ascending: false }).limit(100);
+            const { data } = await sb.from('chat_messages').select('*, profiles(username, display_name, avatar_url, points)').order('created_at', { ascending: false }).limit(120);
             const box = $('chat-list');
             const list = (data || []).reverse();
-            if (!list.length) { box.innerHTML = '<p class="muted text-sm text-center py-6">لا رسائل بعد — افتح الحوار! 👋</p>'; return; }
+            if (!list.length) { box.innerHTML = '<div class="text-center py-10 muted text-sm"><div class="text-4xl mb-2">👋</div>لا رسائل بعد — ابدأ الحوار</div>'; return; }
+            const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 90;
             box.innerHTML = '';
-            list.forEach(m => box.appendChild(chatEl(m)));
-            box.scrollTop = box.scrollHeight;
+            let day = null;
+            lastSender = null; lastStamp = 0;
+            list.forEach(m => {
+                const d = new Date(m.created_at);
+                const dl = dayLabel(d);
+                if (dl !== day) {
+                    day = dl; lastSender = null;
+                    const sep = document.createElement('div'); sep.className = 'day-sep';
+                    sep.innerHTML = '<span>' + esc(dl) + '</span>'; box.appendChild(sep);
+                }
+                box.appendChild(chatEl(m));
+                lastSender = m.user_id; lastStamp = d.getTime();
+            });
+            if (atBottom || box.dataset.init !== '1') { box.scrollTop = box.scrollHeight; box.dataset.init = '1'; }
+            $('chat-jump').classList.toggle('hide', atBottom);
         }
         function chatEl(m) {
-            const el = document.createElement('div'); el.className = 'chat-item' + (session && m.user_id === session.user.id ? ' mine' : '');
-            const pr = m.profiles || {};
-            const av = safeUrl(pr.avatar_url);
-            el.innerHTML = '<div class="c-avatar">' + (av ? '<img src="' + esc(av) + '" alt="" class="w-full h-full object-cover">' : esc((pr.display_name || pr.username || '?').charAt(0))) + '</div>' +
-                '<div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><b class="text-xs">' + esc(pr.display_name || pr.username) + '</b><span class="text-[10px] muted">' + new Date(m.created_at).toLocaleString('ar-DZ', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + '</span></div>' +
-                (m.content ? '<p class="text-sm mt-1 whitespace-pre-line break-words">' + esc(m.content) + '</p>' : '') +
-                (m.attachment ? attachmentLine(m.attachment, CONFIG.studentBucket) : '') + '</div>';
             const mine = session && m.user_id === session.user.id;
-            if (mine || isAdmin) {
-                const d = document.createElement('button'); d.type = 'button'; d.className = 'btn btn-danger btn-sm self-start'; d.textContent = '🗑';
-                d.addEventListener('click', async () => {
-                    if (m.attachment && m.attachment.path) sb.storage.from(CONFIG.studentBucket).remove([m.attachment.path]).catch(() => {});
-                    const { error } = await sb.from('chat_messages').delete().eq('id', m.id);
-                    if (error) toast('تعذّر الحذف: ' + error.message, 'error');
-                    else { loadChat(); if (isAdmin) renderAdminLists(); }
-                });
-                el.appendChild(d);
-            }
-            return el;
+            const pr = m.profiles || {};
+            const grouped = lastSender === m.user_id && (new Date(m.created_at).getTime() - lastStamp) < 120000;
+            const row = document.createElement('div');
+            row.className = 'brow' + (mine ? ' mine' : '') + (grouped ? ' grouped' : '');
+            const av = safeUrl(pr.avatar_url);
+            const body = m.content ? '<span class="ctext">' + esc(m.content) + '</span>' : '';
+            const media = m.attachment ? bubbleAttachment(m.attachment) : '';
+            row.innerHTML =
+                '<div class="bav' + (grouped ? ' ph' : '') + '">' + (av ? '<img src="' + esc(av) + '" alt="" class="w-full h-full object-cover">' : esc((pr.display_name || pr.username || '?').charAt(0))) + '</div>' +
+                '<div class="bwrap">' +
+                (grouped || mine ? '' : '<div class="bname">' + esc(pr.display_name || pr.username) + '</div>') +
+                '<div class="bubble">' + body + media +
+                '<span class="btime">' + new Date(m.created_at).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }) + '</span>' +
+                (mine || isAdmin ? '<button type="button" class="del" title="حذف">✕</button>' : '') +
+                '</div></div>';
+            const del = row.querySelector('.del');
+            if (del) del.addEventListener('click', async () => {
+                if (m.attachment && m.attachment.path) sb.storage.from(CONFIG.studentBucket).remove([m.attachment.path]).catch(() => {});
+                const { error } = await sb.from('chat_messages').delete().eq('id', m.id);
+                if (error) toast('تعذّر الحذف: ' + error.message, 'error');
+                else { loadChat(); if (isAdmin) renderAdminLists(); }
+            });
+            return row;
+        }
+        function bubbleAttachment(att) {
+            const url = sb.storage.from(CONFIG.studentBucket).getPublicUrl(att.path).data.publicUrl;
+            if ((att.type || '').startsWith('audio/')) return '<audio controls preload="metadata" src="' + esc(url) + '"></audio>';
+            if ((att.type || '').startsWith('image/')) return '<img class="ph-img" src="' + esc(url) + '" alt="" onclick="window.open(this.src,\'_blank\')">';
+            return '<a class="bfile" href="' + esc(url) + '" target="_blank" rel="noopener">' + fileIcon(att.name) + ' ' + esc(att.name) + '</a>';
         }
 
+        $('chat-jump').addEventListener('click', () => { const b = $('chat-list'); b.scrollTop = b.scrollHeight; $('chat-jump').classList.add('hide'); });
+        $('chat-list').addEventListener('scroll', () => {
+            const b = $('chat-list');
+            $('chat-jump').classList.toggle('hide', b.scrollHeight - b.scrollTop - b.clientHeight < 90);
+        });
         $('chat-attach').addEventListener('click', () => $('chat-file').click());
 
         // ======================= التعليقات الصوتية =======================
@@ -1211,7 +1477,7 @@
         function recUI(on, label) {
             const b = $('chat-mic');
             b.textContent = on ? '⏹' : '🎤';
-            b.classList.toggle('btn-primary', on);
+            b.classList.toggle('btn-danger', on);
             b.classList.toggle('btn-soft', !on);
             if (label) { $('chat-file-info').textContent = label; $('chat-file-info').classList.remove('hidden'); }
         }
@@ -1298,33 +1564,225 @@
 
         // تحديث فوري للدردشة (إن كان Realtime مفعّلاً في Supabase)
         try {
-            sb.channel('chat-live').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, () => { if (session) loadChat(); }).subscribe();
+            sb.channel('chat-live')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, () => { if (session) { loadChat(); loadNotifications(); } })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => { if (session) loadNotifications(); })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, () => { loadAnnouncements(); })
+                .subscribe();
         } catch (e) { /* بدون realtime نستخدم التحميل اليدوي */ }
 
-        // ---------------------------------------------------------- الترتيب
-        async function renderRanking() {
-            const { data } = await sb.from('profiles').select('*').order('points', { ascending: false }).limit(20);
-            const box = $('ranking-list'); box.innerHTML = '';
-            if (!(data || []).length) { box.innerHTML = '<p class="muted text-sm text-center py-6">لا طلاب بعد.</p>'; return; }
-            (data || []).forEach((p, i) => {
+
+        // ==========================================================
+        //                        الإعلانات
+        // ==========================================================
+        let announcements = [];
+        async function loadAnnouncements() {
+            const { data, error } = await sb.from('announcements')
+                .select('*').order('is_pinned', { ascending: false }).order('created_at', { ascending: false }).limit(30);
+            const box = $('ann-grid');
+            announcements = data || [];
+            if (error) { box.innerHTML = '<p class="muted text-sm col-span-full text-center">تعذّر تحميل الإعلانات — شغّل ملف SQL الرابع.</p>'; return; }
+            if (!announcements.length) { box.innerHTML = '<div class="col-span-full text-center py-10 muted text-sm"><div class="text-4xl mb-2">📜</div>لا إعلانات بعد</div>'; return; }
+            box.innerHTML = '';
+            announcements.forEach(a => {
+                const el = document.createElement('article');
+                el.className = 'card frame';
+                const img = safeUrl(a.image_url);
+                el.innerHTML =
+                    (img ? '<div class="h-40 overflow-hidden bg-black"><img src="' + esc(img) + '" alt="" class="w-full h-full object-cover" loading="lazy"></div>' : '') +
+                    '<div class="p-4">' +
+                    (a.is_pinned ? '<span class="chip chip-gold mb-2">📌 مثبّت</span> ' : '') +
+                    '<h3 class="text-lg font-black mb-1">' + esc(a.title) + '</h3>' +
+                    '<p class="muted text-sm whitespace-pre-line line-clamp-4">' + esc(a.content || '') + '</p>' +
+                    '<div class="flex flex-wrap items-center gap-2 mt-3 pt-2.5 border-t" style="border-color: var(--border)">' +
+                    (a.file_no ? '<button type="button" class="btn btn-gold btn-sm" data-go="' + esc(a.file_no) + '">📦 اذهب إلى الملف #' + esc(a.file_no) + '</button>' : '') +
+                    '<span class="text-[10.5px] muted">' + new Date(a.created_at).toLocaleDateString('ar-DZ') + '</span>' +
+                    (isAdmin ? '<button type="button" class="btn btn-danger btn-sm ms-auto" data-del="' + a.id + '">🗑</button>' : '') +
+                    '</div></div>';
+                const go = el.querySelector('[data-go]');
+                if (go) go.addEventListener('click', () => filterByFile(go.dataset.go));
+                const del = el.querySelector('[data-del]');
+                if (del) del.addEventListener('click', async () => {
+                    if (!confirm('حذف الإعلان؟')) return;
+                    await sb.from('announcements').delete().eq('id', a.id);
+                    toast('حُذف الإعلان', 'ok'); loadAnnouncements(); renderAdminLists();
+                });
+                box.appendChild(el);
+            });
+        }
+
+        $('an-image').addEventListener('change', () => {
+            const f = $('an-image').files[0], pv = $('an-image-preview');
+            if (f) { pv.src = URL.createObjectURL(f); pv.classList.remove('hidden'); } else pv.classList.add('hidden');
+        });
+
+        $('ann-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!isAdmin) { toast('سجّل الدخول كأدمن', 'error'); return; }
+            const btn = $('an-submit'); btn.disabled = true;
+            try {
+                let image_url = null;
+                const f = $('an-image').files[0];
+                if (f) {
+                    const img = await compressImage(f, 1400, 0.85);
+                    const att = await uploadStudentFile(img, 'attachments', 1400, 0.85, 45000);
+                    image_url = sb.storage.from(CONFIG.studentBucket).getPublicUrl(att.path).data.publicUrl;
+                }
+                const { error } = await sb.from('announcements').insert({
+                    title: $('an-title').value.trim(), content: $('an-content').value.trim() || null,
+                    image_url, file_no: $('an-fileno').value.trim() || null, is_pinned: $('an-pinned').checked
+                });
+                if (error) throw error;
+                $('ann-form').reset(); $('an-image-preview').classList.add('hidden');
+                toast('📣 نُشر الإعلان', 'ok');
+                loadAnnouncements(); loadNotifications(); renderAdminLists();
+            } catch (err) { $('an-status').textContent = 'ERROR: ' + dbError(err); }
+            btn.disabled = false;
+        });
+
+        // ==========================================================
+        //                        الإشعارات
+        // ==========================================================
+        let notifUnread = 0;
+        function renderNotifBadge(n) {
+            notifUnread = n;
+            const b = $('notif-count');
+            b.textContent = n > 9 ? '9+' : n;
+            b.classList.toggle('hide', !n);
+        }
+        async function loadNotifications() {
+            if (!session) { renderNotifBadge(0); return; }
+            const { data } = await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(40);
+            const list = data || [];
+            renderNotifBadge(list.filter(x => !x.is_read).length);
+            const box = $('notif-list'); box.innerHTML = '';
+            if (!list.length) { box.innerHTML = '<p class="muted text-xs text-center py-8">لا إشعارات بعد.</p>'; return; }
+            list.forEach(n => {
+                const el = document.createElement('div');
+                el.className = 'notif-item' + (n.is_read ? '' : ' unread');
+                el.innerHTML = '<div class="text-lg">' + (n.kind === 'chat' ? '💬' : n.kind === 'award' ? '🏆' : n.kind === 'announcement' ? '📣' : n.kind === 'welcome' ? '🎉' : n.kind === 'comment' ? '✍️' : '📦') + '</div>' +
+                    '<div class="flex-1 min-w-0"><div class="font-bold">' + esc(n.title) + '</div>' +
+                    (n.body ? '<div class="muted text-[11.5px] truncate">' + esc(n.body) + '</div>' : '') +
+                    '<div class="text-[10px] muted mt-0.5">' + new Date(n.created_at).toLocaleString('ar-DZ', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + '</div></div>';
+                el.addEventListener('click', async () => {
+                    if (!n.is_read) { await sb.from('notifications').update({ is_read: true }).eq('id', n.id); loadNotifications(); }
+                    closeNotif();
+                    if (n.kind === 'chat') document.getElementById('chat').scrollIntoView({ behavior: 'smooth' });
+                    else if (n.kind === 'award') document.getElementById('hall').scrollIntoView({ behavior: 'smooth' });
+                    else if (n.kind === 'announcement') document.getElementById('ann').scrollIntoView({ behavior: 'smooth' });
+                    else if (n.ref_id && (n.kind === 'comment' || n.kind === 'post')) {
+                        const p = posts.find(x => String(x.id) === String(n.ref_id)); if (p) openPost(p);
+                    }
+                });
+                box.appendChild(el);
+            });
+        }
+        function openNotif() { $('notif-panel').classList.add('open'); loadNotifications(); }
+        function closeNotif() { $('notif-panel').classList.remove('open'); }
+        $('notif-btn').addEventListener('click', () => $('notif-panel').classList.contains('open') ? closeNotif() : openNotif());
+        $('notif-close').addEventListener('click', closeNotif);
+        $('notif-readall').addEventListener('click', async () => {
+            if (!session) return;
+            await sb.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false);
+            loadNotifications();
+        });
+
+        // ==========================================================
+        //                        الأعضاء + ترحيب
+        // ==========================================================
+        async function renderMembers() {
+            const { data } = await sb.from('profiles').select('*').order('created_at', { ascending: false }).limit(40);
+            const box = $('members-grid'); box.innerHTML = '';
+            const list = data || [];
+            if (!list.length) { box.innerHTML = '<p class="muted text-sm col-span-full text-center py-8">لا أعضاء بعد.</p>'; return; }
+            const weekAgo = Date.now() - 7 * 86400000;
+            const newbies = list.filter(p => new Date(p.created_at).getTime() > weekAgo);
+            if (newbies.length) {
+                $('welcome-strip').classList.remove('hide');
+                $('welcome-names').textContent = newbies.slice(0, 6).map(p => p.display_name || p.username).join(' · ');
+            } else $('welcome-strip').classList.add('hide');
+
+            list.forEach(p => {
                 const { cur } = levelFor(p.points);
                 const av = safeUrl(p.avatar_url);
-                const medal = ['🥇','🥈','🥉'][i] || '#' + (i + 1);
-                const el = document.createElement('div'); el.className = 'file-row' + (me && p.id === me.id ? ' ' : '');
-                el.style.borderColor = me && p.id === me.id ? 'var(--accent)' : 'var(--border)';
-                el.innerHTML = '<div class="text-xl w-8 text-center font-black">' + medal + '</div>' +
-                    '<div class="c-avatar">' + (av ? '<img src="' + esc(av) + '" alt="" class="w-full h-full object-cover">' : esc((p.display_name || '?').charAt(0))) + '</div>' +
-                    '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">' + esc(p.display_name || p.username) + (p.is_banned ? ' ⛔' : '') + '</div>' +
-                    '<div class="text-xs muted">' + (cur.icon || '') + ' ' + esc(cur.name) + ' · ' + p.visits + ' زيارة</div></div>' +
-                    '<div class="font-tech font-black accent">' + p.points + ' PT</div>';
+                const el = document.createElement('div');
+                el.className = 'card member' + (new Date(p.created_at).getTime() > weekAgo ? ' new' : '');
+                el.innerHTML =
+                    '<div class="mring ring-royal"></div>' +
+                    '<div class="mav">' + (av ? '<img src="' + esc(av) + '" alt="" class="w-full h-full object-cover">' : esc((p.display_name || p.username || '?').charAt(0))) + '</div>' +
+                    '<div class="font-black text-[12.5px] truncate">' + esc(p.display_name || p.username) + (p.is_banned ? ' ⛔' : '') + '</div>' +
+                    '<div class="text-[10px] gold truncate">' + (cur.icon || '') + ' ' + esc(cur.name) + '</div>' +
+                    '<div class="text-[10.5px] font-tech font-black mt-0.5">' + p.points + ' PT</div>';
+                el.addEventListener('click', () => toast((p.display_name || p.username) + ' · ' + p.points + ' نقطة · ' + p.visits + ' زيارة'));
                 box.appendChild(el);
             });
         }
 
         // ==========================================================
+        //                        قاعة الأساطير
+        // ==========================================================
+        function buildConfetti() {
+            const box = $('confetti'); if (!box || box.children.length) return;
+            const cols = ['var(--gold)', 'var(--violet)', 'var(--cyan)'];
+            for (let i = 0; i < 26; i++) {
+                const c = document.createElement('i');
+                c.style.left = Math.random() * 100 + '%';
+                c.style.background = cols[i % 3];
+                c.style.animationDuration = (3 + Math.random() * 3.5) + 's';
+                c.style.animationDelay = (-Math.random() * 4) + 's';
+                box.appendChild(c);
+            }
+        }
+
+        // ---------------------------------------------------------- الترتيب
+        async function renderRanking() {
+            const { data } = await sb.from('profiles').select('*').order('points', { ascending: false }).limit(20);
+            const box = $('ranking-list'); const pod = $('podium');
+            box.innerHTML = ''; pod.innerHTML = '';
+            const list = (data || []).filter(p => !p.is_banned);
+            if (!list.length) { box.innerHTML = '<p class="muted text-sm text-center py-6">لا طلاب بعد.</p>'; return; }
+            const top = list.slice(0, 3);
+            const order = [1, 0, 2].filter(i => top[i]);
+            order.forEach(i => {
+                const p = top[i];
+                const cn = levelFor(p.points).cur;
+                const av = safeUrl(p.avatar_url);
+                const el = document.createElement('div');
+                el.className = 'p' + (i === 0 ? ' first' : '');
+                el.innerHTML = '<div class="medal">' + ['🥇', '🥈', '🥉'][i] + '</div>' +
+                    '<div class="w-11 h-11 rounded-full overflow-hidden mx-auto my-1 grid place-items-center font-black" style="background: rgba(var(--gold-rgb),.18); color: var(--gold)">' +
+                    (av ? '<img src="' + esc(av) + '" alt="" class="w-full h-full object-cover">' : esc((p.display_name || '?').charAt(0))) + '</div>' +
+                    '<div class="text-[11px] font-black truncate">' + esc(p.display_name || p.username) + '</div>' +
+                    '<div class="text-[9.5px] muted truncate">' + esc(cn.name) + '</div>' +
+                    '<div class="text-[11px] font-tech font-black gold mt-0.5">' + p.points + ' PT</div>';
+                pod.appendChild(el);
+            });
+            list.forEach((p, i) => {
+                const cn = levelFor(p.points).cur;
+                const av = safeUrl(p.avatar_url);
+                const medal = ['🥇', '🥈', '🥉'][i] || '#' + (i + 1);
+                const el = document.createElement('div');
+                el.className = 'file-row';
+                if (me && p.id === me.id) el.style.borderColor = 'var(--gold)';
+                el.innerHTML = '<div class="text-lg w-7 text-center font-black">' + medal + '</div>' +
+                    '<div class="c-avatar">' + (av ? '<img src="' + esc(av) + '" alt="" class="w-full h-full object-cover">' : esc((p.display_name || '?').charAt(0))) + '</div>' +
+                    '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">' + esc(p.display_name || p.username) + '</div>' +
+                    '<div class="text-[10.5px] muted">' + (cn.icon || '') + ' ' + esc(cn.name) + ' · ' + p.visits + ' زيارة</div></div>' +
+                    '<div class="font-tech font-black gold">' + p.points + ' PT</div>';
+                box.appendChild(el);
+            });
+            buildConfetti();
+        }
+
+        // ==========================================================
         //                        لوحة الإدارة
         // ==========================================================
-        $('admin-btn').addEventListener('click', () => { if (isAdmin) { openModal('admin-modal'); renderAdminLists(); } });
+        $('admin-btn').addEventListener('click', () => {
+            if (!isAdmin) return;
+            openModal('admin-modal');
+            document.querySelector('[data-mtab="a-ann"]').click();
+            renderAdminLists(); loadAnnouncements();
+        });
 
         async function loadAdminData() {
             // تعبئة قائمة الطلاب في لقب الأسبوع
@@ -1344,7 +1802,7 @@
                 const th = safeUrl(p.image_url);
                 r.innerHTML = (th ? '<img src="' + esc(th) + '" alt="" class="w-12 h-12 object-cover shrink-0">' : '<div class="file-ico">' + (sec.icon || '📄') + '</div>') +
                     '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">' + esc(p.title) + '</div>' +
-                    '<div class="text-xs muted">' + (sec.icon || '') + ' ' + (sec.name || p.section) + ' · ❤️ ' + (likesByPost[p.id] || 0) + ' · ' + new Date(p.created_at).toLocaleDateString('ar-DZ') + '</div></div>';
+                    '<div class="text-xs muted">' + (sec.icon || '') + ' ' + (sec.name || p.section) + (p.file_no ? ' · ملف #' + esc(p.file_no) : '') + ' · ❤️ ' + (likesByPost[p.id] || 0) + '</div></div>';
                 const e = document.createElement('button'); e.type = 'button'; e.className = 'btn btn-cyan btn-sm'; e.textContent = '✏️'; e.title = 'تعديل';
                 e.addEventListener('click', () => startPostEdit(p));
                 const d = document.createElement('button'); d.type = 'button'; d.className = 'btn btn-danger btn-sm'; d.textContent = '🗑'; d.title = 'حذف';
@@ -1384,6 +1842,20 @@
                     if (error) toast('فشل: ' + error.message, 'error'); else { toast('تم حذف الملف', 'ok'); renderAdminLists(); renderRanking(); }
                 });
                 r.appendChild(pts); r.appendChild(save); r.appendChild(ban); r.appendChild(del); sl.appendChild(r);
+            });
+
+            // الإعلانات
+            const anl = $('an-list'); anl.innerHTML = '';
+            if (!announcements.length) anl.innerHTML = '<p class="muted text-xs">لا إعلانات.</p>';
+            announcements.forEach(a => {
+                const r = document.createElement('div'); r.className = 'file-row';
+                const th = safeUrl(a.image_url);
+                r.innerHTML = (th ? '<img src="' + esc(th) + '" alt="" class="w-10 h-10 object-cover shrink-0">' : '<div class="file-ico">📣</div>') +
+                    '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">' + esc(a.title) + '</div>' +
+                    '<div class="text-[11px] muted">' + (a.file_no ? 'ملف #' + esc(a.file_no) + ' · ' : '') + new Date(a.created_at).toLocaleDateString('ar-DZ') + '</div></div>';
+                const d = document.createElement('button'); d.type = 'button'; d.className = 'btn btn-danger btn-sm'; d.textContent = '🗑';
+                d.addEventListener('click', async () => { await sb.from('announcements').delete().eq('id', a.id); toast('حُذف الإعلان', 'ok'); loadAnnouncements(); renderAdminLists(); });
+                r.appendChild(d); anl.appendChild(r);
             });
 
             // المستويات
@@ -1469,6 +1941,7 @@
             $('s-edit-banner').classList.add('hidden'); $('s-edit-banner').classList.remove('flex');
             $('sp-submit').textContent = 'DEPLOY // نشر الآن';
             $('sp-status').textContent = ''; $('sp-progress-wrap').classList.add('hidden'); $('sp-progress-bar').style.width = '0';
+            $('sp-fileno').value = '';
             renderSpFiles();
         }
         $('s-cancel-edit').addEventListener('click', resetSpForm);
@@ -1476,6 +1949,7 @@
         function startPostEdit(p) {
             resetSpForm(); editingPost = p;
             $('sp-title').value = p.title; $('sp-section').value = p.section; $('sp-content').value = p.content || '';
+            $('sp-fileno').value = p.file_no || '';
             $('sp-link').value = p.external_link || '';
             keptAttachments = p.attachments.slice(); renderSpFiles();
             if (p.image_url) { $('sp-image-preview').src = p.image_url; $('sp-image-preview').classList.remove('hidden'); }
@@ -1532,7 +2006,8 @@
                 if (editing) editing.attachments.filter(a => !keptAttachments.some(k => k.path === a.path)).forEach(a => toDelete.push(a.path));
                 const payload = {
                     title: $('sp-title').value.trim(), section: $('sp-section').value, content: $('sp-content').value.trim(),
-                    external_link: link || null, image_url, video_url, attachments: [...keptAttachments, ...newAtts]
+                    external_link: link || null, image_url, video_url, attachments: [...keptAttachments, ...newAtts],
+                    file_no: ($('sp-fileno').value.trim() || null)
                 };
                 status.textContent = 'SAVING DATA...';
                 let res;
@@ -1701,6 +2176,42 @@
             if (isIOS && !standalone) {
                 setTimeout(function () { btn.hidden = false; }, 1200);
             }
+            window.addEventListener('appinstalled', function () { btn.hidden = true; });
+        })();
+    
+    </script>
+
+    <!-- تثبيت التطبيق -->
+    <style>
+        #pwa-install{position:fixed;bottom:16px;right:16px;z-index:90;display:inline-flex;align-items:center;gap:.5rem;
+            font-weight:800;font-size:.8rem;padding:.65rem 1rem;border:0;cursor:pointer;background:var(--gold);color:var(--on-gold);
+            clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);box-shadow:0 12px 30px -10px rgba(var(--gold-rgb),.7)}
+        #pwa-install[hidden]{display:none}
+        #pwa-tip{position:fixed;inset:0;z-index:95;background:var(--overlay);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px}
+        #pwa-tip[hidden]{display:none}
+        #pwa-tip .box{max-width:340px;background:var(--panel);color:var(--text);padding:22px;text-align:center;border:1px solid var(--border)}
+        #pwa-tip button{font:inherit;font-weight:800;padding:.5rem 1.1rem;border:0;cursor:pointer;background:var(--gold);color:var(--on-gold)}
+    </style>
+    <button id="pwa-install" type="button" hidden>📲 ثبّت التطبيق</button>
+    <div id="pwa-tip" hidden><div class="box">
+        <h3 class="font-black mb-2">📲 التثبيت على iPhone</h3>
+        <p class="muted text-sm mb-3">اضغط زر المشاركة في Safari ثم «إضافة إلى الشاشة الرئيسية».</p>
+        <button type="button" id="pwa-tip-close">فهمت</button>
+    </div></div>
+    <script>
+        (function () {
+            if (!('serviceWorker' in navigator)) return;
+            window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); });
+            var btn = document.getElementById('pwa-install'), tip = document.getElementById('pwa-tip'), deferred = null;
+            var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; if (!standalone) btn.hidden = false; });
+            btn.addEventListener('click', async function () {
+                if (deferred) { deferred.prompt(); await deferred.userChoice.catch(function () {}); btn.hidden = true; deferred = null; return; }
+                tip.hidden = false;
+            });
+            document.getElementById('pwa-tip-close').addEventListener('click', function () { tip.hidden = true; });
+            if (isIOS && !standalone) setTimeout(function () { btn.hidden = false; }, 1200);
             window.addEventListener('appinstalled', function () { btn.hidden = true; });
         })();
     </script>
