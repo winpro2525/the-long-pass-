@@ -1,5 +1,5 @@
 /* THE LONG PASS — Service Worker */
-const VERSION = 'tlp-v2';
+const VERSION = 'tlp-v4';
 const SHELL = [
   './',
   './index.html',
