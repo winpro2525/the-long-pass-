@@ -1286,10 +1286,34 @@
         on('admin-btn', 'click', () => { location.href = 'admin.html'; });
 
         async function loadAdminData() {
-            // تعبئة قائمة الطلاب في لقب الأسبوع
-            const { data } = await sb.from('profiles').select('id, username, display_name, points').order('points', { ascending: false });
-            $('aw-user').innerHTML = (data || []).map(p => '<option value="' + p.id + '">' + esc(p.display_name || p.username) + ' (' + p.points + ' PT)</option>').join('');
+            const { data } = await sb.from('profiles').select('id, username, display_name, points, podium_rank, is_banned').order('points', { ascending: false });
+            const list = (data || []).filter(p => !p.is_banned);
+            if ($('aw-user')) $('aw-user').innerHTML = list.map(p => '<option value="' + p.id + '">' + esc(p.display_name || p.username) + ' (' + p.points + ' PT)</option>').join('');
+            [1, 2, 3].forEach(rank => {
+                const sel = $('pod-' + rank); if (!sel) return;
+                const cur = (list.find(p => Number(p.podium_rank) === rank) || {}).id || '';
+                sel.innerHTML = '<option value="">— لا أحد —</option>' + list.map(p =>
+                    '<option value="' + p.id + '"' + (p.id === cur ? ' selected' : '') + '>' + esc(p.display_name || p.username) + '</option>').join('');
+            });
         }
+
+        on('podium-save', 'click', async () => {
+            if (!isAdmin) return;
+            const ids = [1, 2, 3].map(r => ($('pod-' + r) || {}).value || '');
+            const chosen = ids.filter(Boolean);
+            if (new Set(chosen).size !== chosen.length) { toast('لا يمكن اختيار نفس الطالب في مركزين', 'error'); return; }
+            const st = $('podium-status'); if (st) st.textContent = 'جارٍ الحفظ...';
+            const clear = await sb.from('profiles').update({ podium_rank: null }).not('podium_rank', 'is', null);
+            if (clear.error) { toast('فشل: ' + dbError(clear.error), 'error'); if (st) st.textContent = ''; return; }
+            for (let i = 0; i < 3; i++) {
+                if (!ids[i]) continue;
+                const r = await sb.from('profiles').update({ podium_rank: i + 1 }).eq('id', ids[i]);
+                if (r.error) { toast('فشل: ' + dbError(r.error), 'error'); if (st) st.textContent = ''; return; }
+            }
+            if (st) st.textContent = '✅ تم حفظ المنصة';
+            toast('تم تحديث منصة أفضل ثلاثة', 'ok');
+            await loadAdminData(); renderRanking();
+        });
 
         async function renderAdminLists() {
             loadAdminData();
@@ -1323,7 +1347,7 @@
                     '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">' + esc(p.display_name || p.username) + (p.is_banned ? ' <span class="text-red-500">⛔ محظور</span>' : '') + '</div>' +
                     '<div class="text-xs muted" dir="ltr">@' + esc(p.username) + ' · ' + p.points + ' PT</div></div>';
                 const pk = document.createElement('select'); pk.className = 'field w-24 text-center'; pk.style.padding = '.3rem'; pk.title = 'المنصة (أفضل 3)';
-                pk.innerHTML = [['', 'بدون منصة'], ['1', 'منصة ١'], ['2', 'منصة ٢'], ['3', 'منصة ٣']].map(function (o) {
+                pk.innerHTML = [['', '—'], ['1', 'المركز ١'], ['2', 'المركز ٢'], ['3', 'المركز ٣']].map(function (o) {
                     return '<option value="' + o[0] + '"' + (String(p.podium_rank || '') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
                 }).join('');
                 const md = document.createElement('select'); md.className = 'field w-20 text-center'; md.style.padding = '.3rem';

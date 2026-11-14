@@ -38,7 +38,7 @@
                 <button type="button" class="tab-btn" data-mtab="a-new">✍️ منشور</button>
                 <button type="button" class="tab-btn" data-mtab="a-manage">🗂 المنشورات <span id="a-manage-count" class="chip">0</span></button>
                 <button type="button" class="tab-btn" data-mtab="a-students">🎓 الطلاب <span id="a-students-count" class="chip">0</span></button>
-                <button type="button" class="tab-btn" data-mtab="a-award">🏆 اللقب</button>
+                <button type="button" class="tab-btn" data-mtab="a-award">🏆 اللقب والمنصة</button>
                 <button type="button" class="tab-btn" data-mtab="a-mod">🧹 إشراف</button>
             </div>
 
@@ -96,7 +96,21 @@
                 <div id="a-students-list" class="flex flex-col gap-2"></div>
             </div>
 
+            
             <div id="a-award" class="mtab-pane hidden">
+                <div class="p-3 mb-4" style="background: rgba(var(--gold-rgb),.08); border: 1px solid rgba(var(--gold-rgb),.35)">
+                    <h3 class="font-black text-sm mb-1">🥇 منصة أفضل ثلاثة</h3>
+                    <p class="muted text-[11.5px] mb-2">اختر ثلاثة طلاب (أو أقل). لا يظهر أحد على المنصة إلا باختيارك.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                        <div><label class="label">المركز الأول</label><select id="pod-1" class="field"></select></div>
+                        <div><label class="label">المركز الثاني</label><select id="pod-2" class="field"></select></div>
+                        <div><label class="label">المركز الثالث</label><select id="pod-3" class="field"></select></div>
+                    </div>
+                    <button type="button" id="podium-save" class="btn btn-gold btn-sm">💾 حفظ المنصة</button>
+                    <p id="podium-status" class="text-xs gold font-bold mt-1.5 min-h-[1rem]"></p>
+                </div>
+
+                <h3 class="font-black text-sm mb-2 mt-4">🏅 لقب الأسبوع</h3>
                 <form id="award-form" class="space-y-3">
                     <div><label class="label">الطالب</label><select id="aw-user" class="field"></select></div>
                     <div><label class="label">اللقب</label><input type="text" id="aw-title" class="field" value="⭐ طالب الأسبوع" maxlength="60"></div>
