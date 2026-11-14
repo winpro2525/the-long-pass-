@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تواصل مع الأستاذ | THE LONG PASS</title>
+<meta name="description" content="THE LONG PASS — منطقة الطلاب التعليمية">
+<meta name="theme-color" content="#090b0e">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<script>(function(){try{var t=localStorage.getItem('tlp-theme');if(!t)t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="contact">
+<div id="toasts"></div>
+
+<main class="page-wrap" style="padding:24px 12px 40px">
+    <div class="page-head">
+        <div class="kicker">// تواصل خاص</div>
+        <h1 class="h2">✉️ تواصل مع الأستاذ</h1>
+        <p class="muted text-sm">محادثة خاصة بينك وبين الأستاذ فقط — لا يراها بقية الطلاب.</p>
+    </div>
+
+    <div id="contact-login-hint" class="frame p-6 text-center">
+        <p class="muted text-sm mb-3">سجّل الدخول لبدء محادثة خاصة.</p>
+        <button type="button" id="ct-join" class="btn btn-gold">دخول / تسجيل</button>
+    </div>
+
+    <div id="contact-wrap" class="hidden">
+        <div id="contact-admin-pick" class="mb-3 hidden">
+            <label class="label">الطالب</label>
+            <select id="contact-students" class="field"></select>
+        </div>
+        <div class="frame chat-shell contact-shell">
+            <div class="chat-body" id="thread"></div>
+            <div class="composer">
+                <div id="contact-file-info" class="text-[11.5px] gold mb-1.5 hidden"></div>
+                <div class="row">
+                    <textarea id="contact-input" rows="1" class="field" placeholder="اكتب رسالتك..." maxlength="1500"></textarea>
+                    <button type="button" id="contact-attach" class="btn btn-soft btn-icon" title="إرفاق ملف">📎</button>
+                    <input type="file" id="contact-file" class="hidden">
+                    <button type="button" id="contact-send" class="btn btn-gold btn-icon font-tech" title="إرسال">►</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

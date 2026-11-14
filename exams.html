@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الامتحانات | THE LONG PASS</title>
+<meta name="description" content="THE LONG PASS — منطقة الطلاب التعليمية">
+<meta name="theme-color" content="#090b0e">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<script>(function(){try{var t=localStorage.getItem('tlp-theme');if(!t)t='dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="exams">
+<div id="toasts"></div>
+
+<main class="page-wrap" style="padding:24px 12px 40px">
+    <div class="page-head">
+        <div class="kicker">// الامتحانات</div>
+        <h1 class="h2">📝 الامتحانات</h1>
+        <p class="muted text-sm">حمّل ورقة الامتحان، حُلّها، ثم ارفع حلك في صفحة <a href="homework.html" class="gold font-bold">الواجبات</a>.</p>
+    </div>
+
+    <div id="exam-admin-box" class="frame p-4 mb-5 hidden">
+        <h2 class="font-black text-sm mb-3">➕ نشر امتحان</h2>
+        <form id="exam-form" class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="md:col-span-2"><label class="label">اسم الامتحان *</label><input id="exam-title" class="field" required maxlength="140"></div>
+                <div><label class="label">الدرجة من</label>
+                    <select id="exam-max" class="field"><option value="20">من 20</option><option value="10">من 10</option><option value="5">من 5</option></select>
+                </div>
+            </div>
+            <div><label class="label">الدرس</label><input id="exam-lesson" class="field" maxlength="140" placeholder="مثال: الدرس الثالث — الشبكات"></div>
+            <div><label class="label">ملف الامتحان (أي صيغة)</label><input id="exam-file" type="file" class="field text-xs"></div>
+            <div><label class="label">ملاحظات</label><textarea id="exam-note" rows="2" class="field" maxlength="800"></textarea></div>
+            <button type="submit" id="exam-submit" class="btn btn-gold w-full py-2.5">نشر الامتحان</button>
+            <p id="exam-status" class="text-center text-xs gold font-bold min-h-[1rem]"></p>
+        </form>
+    </div>
+
+    <div id="exams-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

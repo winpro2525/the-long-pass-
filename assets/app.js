@@ -12,7 +12,6 @@
                 <div class="text-[9px] gold tracking-[.2em] font-bold hidden sm:block">منصة تعليمية</div>
             </div>
         </a>
-        <nav class="hidden lg:flex items-center gap-0.5 text-[12.5px]" id="main-nav"></nav>
         <div class="flex items-center gap-1.5">
             <button id="theme-btn" type="button" class="btn btn-soft btn-icon" aria-label="تبديل الوضع"><span>☀️</span></button>
             <button id="admin-btn" type="button" class="btn btn-ghost btn-sm font-tech hidden">[ ADMIN ]</button>
@@ -26,6 +25,7 @@
             <button id="menu-btn" type="button" class="btn btn-soft btn-icon lg:hidden" aria-label="القائمة">☰</button>
         </div>
     </div>
+    <nav class="hidden lg:flex items-center justify-center gap-0.5 text-[12.5px] max-w-6xl mx-auto px-3 pb-1.5" id="main-nav"></nav>
     <div id="mobile-menu" class="hidden lg:hidden px-3 pb-2.5 text-sm font-bold grid grid-cols-2 gap-1"></div>
 </header>`,
             footer: `<footer class="border-t mt-12 py-6" style="border-color: var(--border)">
@@ -171,9 +171,13 @@
             ['home', 'students.html', '🏠', 'الرئيسية'],
             ['ann', 'announcements.html', '📣', 'الإعلانات'],
             ['content', 'content.html', '🗂', 'المحتوى'],
+            ['exams', 'exams.html', '📝', 'الامتحانات'],
+            ['homework', 'homework.html', '📥', 'الواجبات'],
+            ['results', 'results.html', '📊', 'النتائج'],
             ['members', 'members.html', '👥', 'الأعضاء'],
             ['hall', 'hall.html', '🏆', 'لوحة الشرف'],
-            ['chat', 'chat.html', '💬', 'الدردشة']
+            ['chat', 'chat.html', '💬', 'الدردشة'],
+            ['contact', 'contact.html', '✉️', 'تواصل معي']
         ];
         (function mountComponents() {
             const page = document.body.dataset.page || 'home';
@@ -183,6 +187,11 @@
             const nav = document.getElementById('main-nav');
             if (nav) nav.innerHTML = NAV.map(n => link(n[0], n[1], n[2], n[3], 'nav-link')).join('') +
                 (page === 'admin' ? '<a href="admin.html" class="nav-link active">⚙️ لوحة التحكم</a>' : '');
+            const hdr = document.querySelector('header');
+            const setHdr = () => document.documentElement.style.setProperty('--header-h', hdr.offsetHeight + 'px');
+            setHdr(); window.addEventListener('resize', setHdr);
+            window.addEventListener('load', setHdr); setTimeout(setHdr, 400);
+            if (window.ResizeObserver) new ResizeObserver(setHdr).observe(hdr);
             const mm = document.getElementById('mobile-menu');
             if (mm) mm.innerHTML = NAV.map(n => link(n[0], n[1], n[2], n[3], 'block px-3 py-2 muted frame')).join('') +
                 '<a id="admin-menu-link" href="admin.html" class="hidden px-3 py-2 gold frame">⚙️ لوحة التحكم</a>' +
@@ -1164,7 +1173,10 @@
                 el.addEventListener('click', async () => {
                     if (!n.is_read) { await sb.from('notifications').update({ is_read: true }).eq('id', n.id); loadNotifications(); }
                     closeNotif();
-                    if (n.kind === 'chat') document.getElementById('chat').scrollIntoView({ behavior: 'smooth' });
+                    if (n.kind === 'exam') location.href = 'exams.html';
+                    else if (n.kind === 'result') location.href = 'results.html';
+                    else if (n.kind === 'submission') location.href = 'homework.html';
+                    else if (n.kind === 'chat') location.href = 'chat.html';
                     else if (n.kind === 'award') document.getElementById('hall').scrollIntoView({ behavior: 'smooth' });
                     else if (n.kind === 'announcement') document.getElementById('ann').scrollIntoView({ behavior: 'smooth' });
                     else if (n.ref_id && (n.kind === 'comment' || n.kind === 'post')) {
@@ -1216,7 +1228,10 @@
                     '<div class="font-black text-[12.5px] truncate">' + esc(p.display_name || p.username) + (p.is_banned ? ' ⛔' : '') + '</div>' +
                     (d.text ? '<div class="desig-tag truncate">' + esc(d.text) + '</div>' : '') +
                     '<div class="text-[10.5px] font-tech font-black mt-0.5">' + p.points + ' PT</div>';
-                el.addEventListener('click', () => toast((p.display_name || p.username) + ' · ' + p.points + ' نقطة · ' + (p.visits || 0) + ' زيارة'));
+                el.addEventListener('click', () => {
+                    if (isAdmin) { openMemberInfo(p.id); return; }
+                    toast((p.display_name || p.username) + ' · ' + p.points + ' نقطة · ' + (p.visits || 0) + ' زيارة');
+                });
                 box.appendChild(el);
             });
         }
@@ -1586,6 +1601,381 @@
         // ---------------------------------------------------------- بدء التشغيل
         // نستخدم onAuthStateChange وحده (يعطي INITIAL_SESSION مرة واحدة) لتجنّب
         // تشغيل التهيئة مرتين وتحديثين متزامنين للتوكن بسبب تعليق الطلبات.
+        // ==========================================================
+        //              رفع أي ملف (بدون تحديد صيغة)
+        // ==========================================================
+        async function uploadAny(file, folder, bucket, maxBytes) {
+            const limit = maxBytes || 10 * 1024 * 1024;
+            if (file.size > limit) throw new Error('الملف أكبر من ' + fmtSize(limit));
+            const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+            const b = bucket || CONFIG.studentBucket;
+            const path = folder + '/' + ((me && me.id) || 'admin') + '/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+            const { error } = await withTimeout(
+                sb.storage.from(b).upload(path, file, { contentType: file.type || 'application/octet-stream', upsert: true }),
+                120000, 'UPLOAD_TIMEOUT');
+            if (error) throw error;
+            return {
+                name: file.name, path, size: file.size, type: file.type || 'application/octet-stream',
+                bucket: b, url: sb.storage.from(b).getPublicUrl(path).data.publicUrl
+            };
+        }
+        function fileUrl(f) {
+            if (!f) return null;
+            if (f.url) return f.url;
+            if (f.path) return sb.storage.from(f.bucket || CONFIG.studentBucket).getPublicUrl(f.path).data.publicUrl;
+            return null;
+        }
+        const EFFORT_CLASS = { 'جيد': 'chip-green', 'متوسط': 'chip-gold', 'رديء': 'chip-rose' };
+        const KIND_LABEL = { exam: 'امتحان', homework: 'واجب', solution: 'حل' };
+
+        // ==========================================================
+        //                        الامتحانات
+        // ==========================================================
+        let exams = [];
+        async function loadExams() {
+            const box = $('exams-grid'); if (!box) return;
+            const { data, error } = await sb.from('exams').select('*').order('created_at', { ascending: false });
+            exams = data || [];
+            const ab = $('exam-admin-box'); if (ab) ab.classList.toggle('hidden', !isAdmin);
+            const sel = $('hw-exam');
+            if (sel) sel.innerHTML = '<option value="">— بدون ربط —</option>' + exams.map(e => '<option value="' + e.id + '">' + esc(e.title) + '</option>').join('');
+            if (error) { box.innerHTML = '<p class="muted text-sm col-span-full text-center">تعذّر التحميل — شغّل ملف SQL السادس.</p>'; return; }
+            box.innerHTML = '';
+            if (!exams.length) { box.innerHTML = '<div class="col-span-full text-center py-12 muted text-sm"><div class="text-4xl mb-2">📝</div>لا امتحانات منشورة بعد</div>'; return; }
+            exams.forEach(e => {
+                const f = e.file || null, u = fileUrl(f);
+                const el = document.createElement('article');
+                el.className = 'card frame';
+                el.innerHTML = '<div class="p-4">' +
+                    '<div class="flex items-start justify-between gap-2">' +
+                    '<h3 class="text-lg font-black leading-tight">' + esc(e.title) + '</h3>' +
+                    '<span class="chip chip-gold shrink-0 font-tech">من ' + e.max_score + '</span></div>' +
+                    (e.lesson ? '<p class="muted text-[12.5px] mt-1">📚 ' + esc(e.lesson) + '</p>' : '') +
+                    (e.note ? '<p class="muted text-sm mt-2 whitespace-pre-line">' + esc(e.note) + '</p>' : '') +
+                    '<div class="flex flex-wrap items-center gap-2 mt-3 pt-2.5 border-t" style="border-color: var(--border)">' +
+                    (u ? '<a class="btn btn-cyan btn-sm" href="' + esc(u) + '" target="_blank" rel="noopener">⤓ تحميل الملف</a>' : '<span class="text-[11px] muted">بدون ملف</span>') +
+                    '<span class="text-[10.5px] muted">' + new Date(e.created_at).toLocaleDateString('ar-DZ') + '</span>' +
+                    (isAdmin ? '<button type="button" class="btn btn-danger btn-sm ms-auto" data-edel="' + e.id + '">🗑</button>' : '') +
+                    '</div></div>';
+                const d = el.querySelector('[data-edel]');
+                if (d) d.addEventListener('click', async () => {
+                    if (!confirm('حذف الامتحان "' + e.title + '"؟')) return;
+                    const { error } = await sb.from('exams').delete().eq('id', e.id);
+                    if (error) toast('فشل: ' + dbError(error), 'error');
+                    else { toast('حُذف الامتحان', 'ok'); loadExams(); }
+                });
+                box.appendChild(el);
+            });
+        }
+        on('exam-form', 'submit', async (ev) => {
+            ev.preventDefault();
+            if (!isAdmin) return;
+            const btn = $('exam-submit'); btn.disabled = true;
+            const st = $('exam-status'); if (st) st.textContent = '';
+            try {
+                let file = null;
+                const f = $('exam-file').files[0];
+                if (f) file = await uploadAny(f, 'exams', CONFIG.mediaBucket, 50 * 1024 * 1024);
+                const { error } = await sb.from('exams').insert({
+                    title: $('exam-title').value.trim(),
+                    lesson: $('exam-lesson').value.trim() || null,
+                    max_score: Number($('exam-max').value),
+                    file, note: $('exam-note').value.trim() || null
+                });
+                if (error) throw error;
+                $('exam-form').reset();
+                if (st) st.textContent = '✅ نُشر الامتحان';
+                toast('📝 نُشر الامتحان', 'ok');
+                loadExams(); loadNotifications();
+            } catch (err) { if (st) st.textContent = 'ERR: ' + dbError(err); }
+            btn.disabled = false;
+        });
+
+        // ==========================================================
+        //                  رفع الواجبات / الامتحانات المحلولة
+        // ==========================================================
+        function subStatusChip(s) {
+            const map = { 'مقبول': 'chip-green', 'يحتاج تعديل': 'chip-rose', 'قيد المراجعة': 'chip-gold' };
+            return '<span class="chip ' + (map[s] || 'chip-gold') + '">' + esc(s) + '</span>';
+        }
+        async function loadSubmissions() {
+            const box = $('subs-list'); if (!box) return;
+            const hint = $('subs-login-hint'); if (hint) hint.classList.toggle('hidden', !!session);
+            const form = $('sub-form-wrap'); if (form) form.classList.toggle('hidden', !session);
+            if (!session) { box.innerHTML = ''; return; }
+            let qy = sb.from('submissions').select('*, profiles(username, display_name, avatar_url)').order('created_at', { ascending: false }).limit(80);
+            if (!isAdmin) qy = qy.eq('student_id', me.id);
+            const { data, error } = await qy;
+            box.innerHTML = '';
+            if (error) { box.innerHTML = '<p class="muted text-sm text-center py-6">تعذّر التحميل — شغّل ملف SQL السادس.<br><span class="text-xs" dir="ltr">' + esc(error.message) + '</span></p>'; return; }
+            const list = data || [];
+            if (!list.length) { box.innerHTML = '<div class="text-center py-10 muted text-sm"><div class="text-4xl mb-2">📥</div>' + (isAdmin ? 'لا يوجد رفع بعد' : 'لم ترفع شيئاً بعد') + '</div>'; return; }
+            list.forEach(s => {
+                const f = s.file, u = fileUrl(f);
+                const pr = s.profiles || {};
+                const el = document.createElement('div');
+                el.className = 'file-row flex-wrap';
+                el.innerHTML =
+                    '<div class="file-ico">' + (s.kind === 'exam' ? '📝' : '📒') + '</div>' +
+                    '<div class="flex-1 min-w-0">' +
+                    '<div class="font-bold text-sm truncate">' + esc(s.title) + (s.subject ? ' <span class="muted text-[11px]">· ' + esc(s.subject) + '</span>' : '') + '</div>' +
+                    '<div class="text-[11px] muted">' + (s.kind === 'exam' ? 'امتحان محلول' : 'واجب') + ' · ' +
+                    (isAdmin ? esc(pr.display_name || pr.username || '') + ' · ' : '') + new Date(s.created_at).toLocaleDateString('ar-DZ') + '</div>' +
+                    (s.note ? '<div class="text-[11.5px] muted mt-0.5">' + esc(s.note) + '</div>' : '') + '</div>' +
+                    '<div class="flex items-center gap-1.5 flex-wrap">' + subStatusChip(s.status) +
+                    (u ? '<a class="btn btn-soft btn-sm" href="' + esc(u) + '" target="_blank" rel="noopener">⤓</a>' : '') + '</div>';
+                if (isAdmin) {
+                    const row = document.createElement('div');
+                    row.className = 'flex flex-wrap items-center gap-1.5 w-full mt-1';
+                    const sc = document.createElement('select'); sc.className = 'field text-xs w-36'; sc.style.padding = '.3rem';
+                    sc.innerHTML = ['قيد المراجعة', 'مقبول', 'يحتاج تعديل'].map(x => '<option' + (x === s.status ? ' selected' : '') + '>' + x + '</option>').join('');
+                    const mx = document.createElement('select'); mx.className = 'field text-xs w-24'; mx.style.padding = '.3rem';
+                    mx.innerHTML = [20, 10, 5].map(x => '<option value="' + x + '"' + ((s.max_score || 20) === x ? ' selected' : '') + '>من ' + x + '</option>').join('');
+                    const gr = document.createElement('input'); gr.type = 'number'; gr.min = 0; gr.value = s.score == null ? '' : s.score;
+                    gr.placeholder = 'النقطة'; gr.className = 'field text-xs w-24'; gr.style.padding = '.3rem';
+                    const ef = document.createElement('select'); ef.className = 'field text-xs w-28'; ef.style.padding = '.3rem';
+                    ef.innerHTML = '<option value="">المجهود</option>' + ['جيد', 'متوسط', 'رديء'].map(x => '<option' + (x === s.effort ? ' selected' : '') + '>' + x + '</option>').join('');
+                    const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'btn btn-gold btn-sm'; sv.textContent = '💾';
+                    sv.title = 'حفظ التقييم (يضيف نتيجة أيضاً)';
+                    sv.addEventListener('click', async () => {
+                        const score = gr.value === '' ? null : Number(gr.value);
+                        if (score != null && (score < 0 || score > Number(mx.value))) { toast('النقطة أكبر من السقف', 'error'); return; }
+                        const up = await sb.from('submissions').update({ status: sc.value, score, max_score: Number(mx.value) }).eq('id', s.id);
+                        if (up.error) { toast('فشل: ' + dbError(up.error), 'error'); return; }
+                        if (score != null) {
+                            await sb.from('results').insert({
+                                item_kind: s.kind === 'exam' ? 'solution' : 'homework',
+                                item_title: s.title, subject: s.subject,
+                                student_id: s.student_id, score, max_score: Number(mx.value),
+                                effort: ef.value || null, note: 'من تقييم الرفع'
+                            });
+                        }
+                        toast('تم حفظ التقييم', 'ok'); loadSubmissions();
+                    });
+                    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn btn-danger btn-sm'; del.textContent = '🗑';
+                    del.addEventListener('click', async () => {
+                        if (!confirm('حذف الرفع؟')) return;
+                        if (s.file && s.file.path) sb.storage.from(s.file.bucket || CONFIG.studentBucket).remove([s.file.path]).catch(() => {});
+                        await sb.from('submissions').delete().eq('id', s.id);
+                        toast('حُذف', 'ok'); loadSubmissions();
+                    });
+                    row.appendChild(sc); row.appendChild(mx); row.appendChild(gr); row.appendChild(ef); row.appendChild(sv); row.appendChild(del);
+                    el.appendChild(row);
+                } else {
+                    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn btn-soft btn-sm'; del.textContent = '🗑';
+                    del.title = 'حذف رفعي';
+                    del.addEventListener('click', async () => {
+                        if (!confirm('حذف هذا الرفع؟')) return;
+                        if (s.file && s.file.path) sb.storage.from(s.file.bucket || CONFIG.studentBucket).remove([s.file.path]).catch(() => {});
+                        await sb.from('submissions').delete().eq('id', s.id);
+                        toast('حُذف', 'ok'); loadSubmissions();
+                    });
+                    el.querySelector('.flex.items-center').appendChild(del);
+                }
+                box.appendChild(el);
+            });
+        }
+        on('sub-form', 'submit', async (ev) => {
+            ev.preventDefault();
+            if (!session) { toast('سجّل الدخول أولاً', 'error'); return; }
+            const btn = $('sub-submit'); btn.disabled = true;
+            const st = $('sub-status'); if (st) st.textContent = '';
+            try {
+                const f = $('sub-file').files[0];
+                if (!f) throw new Error('اختر ملف الواجب');
+                const file = await uploadAny(f, 'submissions', CONFIG.studentBucket, 10 * 1024 * 1024);
+                const kind = $('sub-kind').value;
+                const { error } = await sb.from('submissions').insert({
+                    kind, title: $('sub-title').value.trim(), subject: $('sub-subject').value.trim() || null,
+                    exam_id: kind === 'exam' ? ($('hw-exam').value || null) : null,
+                    student_id: me.id, file, note: $('sub-note').value.trim() || null
+                });
+                if (error) throw error;
+                $('sub-form').reset();
+                if (st) st.textContent = '✅ تم الرفع';
+                toast('📥 تم رفع ملفك', 'ok');
+                loadSubmissions();
+            } catch (err) { if (st) st.textContent = 'ERR: ' + dbError(err); }
+            btn.disabled = false;
+        });
+
+        // ==========================================================
+        //                        النتائج
+        // ==========================================================
+        let results = [];
+        let resultFilter = 'ALL';
+        async function loadResults() {
+            const box = $('results-list'); if (!box) return;
+            const ab = $('result-admin-box'); if (ab) ab.classList.toggle('hidden', !isAdmin);
+            const { data, error } = await sb.from('results').select('*, profiles(username, display_name, avatar_url)').order('created_at', { ascending: false }).limit(200);
+            results = data || [];
+            if (error) { box.innerHTML = '<p class="muted text-sm text-center py-6">تعذّر التحميل — شغّل ملف SQL السادس.</p>'; return; }
+            const list = results.filter(r => resultFilter === 'ALL' || r.item_kind === resultFilter);
+            box.innerHTML = '';
+            if (!list.length) { box.innerHTML = '<div class="text-center py-10 muted text-sm"><div class="text-4xl mb-2">📊</div>لا نتائج بعد</div>'; return; }
+            list.forEach(r => {
+                const pr = r.profiles || {};
+                const el = document.createElement('div');
+                el.className = 'file-row';
+                el.innerHTML =
+                    '<div class="w-8 text-center font-black gold font-tech"></div>' +
+                    '<div class="c-avatar">' + (safeUrl(pr.avatar_url) ? '<img src="' + esc(safeUrl(pr.avatar_url)) + '" class="w-full h-full object-cover" alt="">' : esc((pr.display_name || '?').charAt(0))) + '</div>' +
+                    '<div class="flex-1 min-w-0"><div class="font-bold text-sm truncate">' + esc(pr.display_name || pr.username || '—') + '</div>' +
+                    '<div class="text-[11px] muted truncate">' + (KIND_LABEL[r.item_kind] || '') + ' · ' + esc(r.item_title) + (r.subject ? ' · ' + esc(r.subject) : '') + '</div></div>' +
+                    '<div class="text-center"><div class="font-tech font-black ' + (r.score != null && r.score < r.max_score / 2 ? 'text-rose-500' : 'gold') + '">' + (r.score == null ? '—' : r.score) + '/' + r.max_score + '</div>' +
+                    (r.effort ? '<div class="text-[10px] muted">' + esc(r.effort) + '</div>' : '') + '</div>' +
+                    (isAdmin ? '<button type="button" class="btn btn-danger btn-sm">🗑</button>' : '');
+                const del = el.querySelector('button');
+                if (del) del.addEventListener('click', async () => {
+                    if (!confirm('حذف النتيجة؟')) return;
+                    await sb.from('results').delete().eq('id', r.id);
+                    toast('حُذفت النتيجة', 'ok'); loadResults();
+                });
+                box.appendChild(el);
+            });
+        }
+        document.querySelectorAll('[data-rfilter]').forEach(b => b.addEventListener('click', () => {
+            resultFilter = b.dataset.rfilter;
+            document.querySelectorAll('[data-rfilter]').forEach(x => { x.classList.toggle('btn-gold', x === b); x.classList.toggle('btn-soft', x !== b); });
+            loadResults();
+        }));
+        on('result-form', 'submit', async (ev) => {
+            ev.preventDefault();
+            if (!isAdmin) return;
+            const btn = $('result-submit'); btn.disabled = true;
+            const st = $('result-status'); if (st) st.textContent = '';
+            try {
+                const uid = $('rs-student').value;
+                if (!uid) throw new Error('اختر الطالب');
+                const max = Number($('rs-max').value);
+                const score = $('rs-score').value === '' ? null : Number($('rs-score').value);
+                if (score != null && (score < 0 || score > max)) throw new Error('النقطة يجب أن تكون بين 0 و ' + max);
+                const { error } = await sb.from('results').insert({
+                    item_kind: $('rs-kind').value, item_title: $('rs-title').value.trim(),
+                    subject: $('rs-subject').value.trim() || null, student_id: uid,
+                    score, max_score: max, effort: $('rs-effort').value || null,
+                    note: $('rs-note').value.trim() || null
+                });
+                if (error) throw error;
+                $('result-form').reset();
+                if (st) st.textContent = '✅ أُضيفت النتيجة';
+                toast('📊 أُضيفت النتيجة', 'ok');
+                loadResults(); loadNotifications();
+            } catch (err) { if (st) st.textContent = 'ERR: ' + dbError(err); }
+            btn.disabled = false;
+        });
+        async function fillStudentSelect(sel, withEmpty) {
+            if (!sel) return;
+            const { data } = await sb.from('profiles').select('id, username, display_name').order('display_name');
+            sel.innerHTML = (withEmpty ? '<option value="">— اختر طالباً —</option>' : '') +
+                (data || []).map(p => '<option value="' + p.id + '">' + esc(p.display_name || p.username) + '</option>').join('');
+        }
+
+        // ==========================================================
+        //                  التواصل الخاص مع الأستاذ
+        // ==========================================================
+        let contactUser = null;
+        async function loadContact() {
+            const box = $('thread'); if (!box) return;
+            const hint = $('contact-login-hint'); if (hint) hint.classList.toggle('hidden', !!session);
+            const pick = $('contact-admin-pick'); if (pick) pick.classList.toggle('hidden', !(session && isAdmin));
+            const wrap = $('contact-wrap'); if (wrap) wrap.classList.toggle('hidden', !session);
+            if (!session) return;
+            if (isAdmin) {
+                const sel = $('contact-students');
+                if (sel) {
+                    const { data } = await sb.from('profiles').select('id, username, display_name').order('display_name');
+                    const cur = contactUser || new URLSearchParams(location.search).get('u') || '';
+                    sel.innerHTML = '<option value="">— اختر طالباً —</option>' + (data || []).map(p =>
+                        '<option value="' + p.id + '"' + (p.id === cur ? ' selected' : '') + '>' + esc(p.display_name || p.username) + '</option>').join('');
+                    contactUser = cur || null;
+                }
+            } else contactUser = me.id;
+            if (!contactUser) { box.innerHTML = '<p class="muted text-sm text-center py-8">اختر طالباً لعرض المحادثة.</p>'; return; }
+            const { data } = await sb.from('admin_messages').select('*').eq('user_id', contactUser).order('created_at').limit(200);
+            box.innerHTML = '';
+            const rows = data || [];
+            if (!rows.length) { box.innerHTML = '<div class="text-center py-10 muted text-sm"><div class="text-3xl mb-2">✉️</div>لا رسائل بعد — ابدأ الحديث</div>'; }
+            rows.forEach(m => {
+                const mine = isAdmin ? m.from_admin : !m.from_admin;
+                const el = document.createElement('div');
+                el.className = 'brow' + (mine ? ' mine' : '');
+                el.innerHTML = '<div class="bwrap"><div class="bubble">' +
+                    (m.body ? '<span class="ctext">' + esc(m.body) + '</span>' : '') +
+                    (m.attachment ? bubbleAttachment(m.attachment) : '') +
+                    '<span class="btime">' + new Date(m.created_at).toLocaleString('ar-DZ', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) + '</span>' +
+                    '</div></div>';
+                box.appendChild(el);
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+        let contactFile = null;
+        on('contact-file', 'change', () => {
+            contactFile = $('contact-file').files[0] || null;
+            const info = $('contact-file-info');
+            if (info) { info.textContent = contactFile ? '📎 ' + contactFile.name : ''; info.classList.toggle('hidden', !contactFile); }
+        });
+        on('contact-attach', 'click', () => { const el = $('contact-file'); if (el) el.click(); });
+        async function sendContact() {
+            if (!session || !contactUser) return;
+            const ta = $('contact-input'); const text = (ta.value || '').trim();
+            if (!text && !contactFile) return;
+            const btn = $('contact-send'); btn.disabled = true;
+            try {
+                let attachment = null;
+                if (contactFile) { attachment = await uploadAny(contactFile, 'contact', CONFIG.studentBucket, 10 * 1024 * 1024); contactFile = null; }
+                const { error } = await sb.from('admin_messages').insert({
+                    user_id: isAdmin ? contactUser : me.id,
+                    from_admin: isAdmin, body: text || null, attachment
+                });
+                if (error) throw error;
+                ta.value = ''; if ($('contact-file')) $('contact-file').value = '';
+                if ($('contact-file-info')) $('contact-file-info').classList.add('hidden');
+                await loadContact();
+            } catch (err) { toast('فشل الإرسال: ' + dbError(err), 'error'); }
+            btn.disabled = false;
+        }
+        on('contact-send', 'click', sendContact);
+        on('contact-input', 'keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendContact(); } });
+        on('contact-students', 'change', () => { contactUser = $('contact-students').value || null; loadContact(); });
+
+        // ==========================================================
+        //              بطاقة معلومات العضو (للأدمن)
+        // ==========================================================
+        async function openMemberInfo(uid) {
+            const body = $('member-info-body'); if (!body) return;
+            body.innerHTML = '<p class="muted text-sm text-center py-6">جارٍ التحميل...</p>';
+            openModal('member-modal');
+            const [{ data: p }, subs, res] = await Promise.all([
+                sb.from('profiles').select('*').eq('id', uid).maybeSingle(),
+                sb.from('submissions').select('id', { count: 'exact', head: true }).eq('student_id', uid),
+                sb.from('results').select('id', { count: 'exact', head: true }).eq('student_id', uid)
+            ]);
+            if (!p) { body.innerHTML = '<p class="muted text-sm">لا بيانات.</p>'; return; }
+            const d = designation(p);
+            const av = safeUrl(p.avatar_url);
+            body.innerHTML =
+                '<div class="flex items-center gap-4 mb-4">' +
+                '<div class="w-16 h-16 rounded-full overflow-hidden grid place-items-center font-black text-xl" style="background: rgba(var(--gold-rgb),.18); color: var(--gold)">' +
+                (av ? '<img src="' + esc(av) + '" class="w-full h-full object-cover" alt="">' : esc((p.display_name || '?').charAt(0))) + '</div>' +
+                '<div><div class="font-black text-lg">' + esc(p.display_name || p.username) + '</div>' +
+                '<div class="muted text-xs" dir="ltr">@' + esc(p.username) + '</div>' +
+                (d.text ? '<div class="desig-tag">' + esc(d.text) + '</div>' : '') + '</div></div>' +
+                '<div class="grid grid-cols-2 gap-2 text-sm">' +
+                '<div class="frame p-2.5"><div class="muted text-[10.5px]">النقاط</div><div class="font-tech font-black gold">' + p.points + ' PT</div></div>' +
+                '<div class="frame p-2.5"><div class="muted text-[10.5px]">الزيارات</div><div class="font-tech font-black">' + (p.visits || 0) + '</div></div>' +
+                '<div class="frame p-2.5"><div class="muted text-[10.5px]">الرفعات</div><div class="font-tech font-black">' + (subs.count || 0) + '</div></div>' +
+                '<div class="frame p-2.5"><div class="muted text-[10.5px]">النتائج</div><div class="font-tech font-black">' + (res.count || 0) + '</div></div>' +
+                '<div class="frame p-2.5"><div class="muted text-[10.5px]">المنصة</div><div class="font-black">' + (p.podium_rank ? 'المركز ' + p.podium_rank : '—') + '</div></div>' +
+                '<div class="frame p-2.5"><div class="muted text-[10.5px]">الحالة</div><div class="font-black">' + (p.is_banned ? '⛔ محظور' : '✅ نشط') + '</div></div>' +
+                '</div>' +
+                '<div class="muted text-[11px] mt-3">انضم: ' + new Date(p.created_at).toLocaleString('ar-DZ') + '</div>' +
+                '<div class="flex gap-2 mt-4"><a class="btn btn-gold btn-sm flex-1" href="contact.html?u=' + p.id + '">✉️ مراسلة خاصة</a>' +
+                '<a class="btn btn-soft btn-sm" href="admin.html?tab=a-students">🎓 إدارة</a></div>';
+        }
+
+        on('ct-join', 'click', () => openModal('auth-modal'));
+        on('hw-join', 'click', () => openModal('auth-modal'));
         function pageEls() { return document.body.dataset.page || 'home'; }
 
         async function homeStats() {
@@ -1608,7 +1998,12 @@
             else if (page === 'content') { await fetchAll(); const fno = new URLSearchParams(location.search).get('file'); if (fno) filterByFile(fno); }
             else if (page === 'members') { await renderMembers(); }
             else if (page === 'hall') { await fetchAll(); await renderRanking(); }
+
             else if (page === 'chat') { if (session) await loadChat(); }
+            else if (page === 'exams') { await loadExams(); }
+            else if (page === 'homework') { await loadExams(); await loadSubmissions(); }
+            else if (page === 'results') { await fillStudentSelect($('rs-student'), true); await loadResults(); }
+            else if (page === 'contact') { await loadContact(); }
             else if (page === 'admin') {
                 if (!isAdmin) { toast('هذه الصفحة للإدارة فقط', 'error'); setTimeout(() => location.href = 'students.html', 900); return; }
                 await fetchAll(); await loadAnnouncements(); await renderAdminLists();

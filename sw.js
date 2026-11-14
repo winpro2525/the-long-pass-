@@ -1,11 +1,15 @@
 /* THE LONG PASS — Service Worker */
-const VERSION = 'tlp-v4';
+const VERSION = 'tlp-v5';
 const SHELL = [
   './',
   './index.html',
   './students.html',
   './announcements.html',
   './content.html',
+  './exams.html',
+  './homework.html',
+  './results.html',
+  './contact.html',
   './members.html',
   './hall.html',
   './chat.html',

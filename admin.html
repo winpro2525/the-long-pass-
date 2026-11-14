@@ -32,6 +32,12 @@
             <a href="index.html" class="btn btn-soft btn-sm">الموقع</a>
         </div>
     </div>
+    <div class="flex flex-wrap gap-2 mb-4">
+        <a href="exams.html" class="btn btn-soft btn-sm">📝 الامتحانات</a>
+        <a href="homework.html" class="btn btn-soft btn-sm">📥 الرفعات</a>
+        <a href="results.html" class="btn btn-soft btn-sm">📊 النتائج</a>
+        <a href="contact.html" class="btn btn-soft btn-sm">✉️ التواصل</a>
+    </div>
     <div class="frame p-4 md:p-5">
 <div class="admin-tabs">
                 <button type="button" class="tab-btn active" data-mtab="a-ann">📣 إعلان</button>
@@ -43,7 +49,7 @@
             </div>
 
             <!-- إعلان -->
-            <div id="a-ann">
+            <div id="a-ann" class="mtab-pane">
                 <form id="ann-form" class="space-y-3">
                     <div><label class="label">عنوان الإعلان *</label><input type="text" id="an-title" required maxlength="160" class="field"></div>
                     <div><label class="label">النص</label><textarea id="an-content" rows="3" class="field" maxlength="2000"></textarea></div>
