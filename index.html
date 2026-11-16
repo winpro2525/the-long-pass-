@@ -445,6 +445,8 @@
                 <div class="relative w-36 h-36 shrink-0">
                     <div class="avatar-ring absolute inset-0 rounded-full"></div>
                     <div id="owner-avatar" class="absolute inset-[5px] rounded-full overflow-hidden grid place-items-center font-tech text-5xl font-black" style="background: var(--panel); color: var(--accent)"></div>
+                    <button type="button" id="owner-change-photo" class="hidden absolute -bottom-2 left-1/2 -translate-x-1/2 btn btn-primary btn-sm whitespace-nowrap shadow-lg" title="رفع صورة جديدة">📷 تغيير الصورة</button>
+                    <input type="file" id="owner-file-input" accept="image/*" class="hidden">
                 </div>
                 <div class="flex-1 text-center md:text-right">
                     <h3 id="owner-name" class="text-2xl font-black"></h3>
@@ -623,7 +625,23 @@
                         <div><label class="label">اللقب / الوصف</label><input type="text" id="s-title" maxlength="100" class="field"></div>
                     </div>
                     <div><label class="label">نبذة عنك</label><textarea id="s-bio" rows="3" class="field"></textarea></div>
-                    <div><label class="label">رابط صورة البروفايل (اختياري)</label><input type="url" id="s-avatar" dir="ltr" class="field" placeholder="https://..."></div>
+                    <div>
+                        <label class="label">صورة البروفايل (اختياري)</label>
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="w-20 h-20 rounded-full overflow-hidden grid place-items-center font-tech text-2xl font-black shrink-0" style="background: var(--panel); color: var(--accent); border:1px solid var(--border)">
+                                <img id="s-avatar-preview" alt="معاينة الصورة" class="w-full h-full object-cover hidden">
+                                <span id="s-avatar-preview-letter">؟</span>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <button type="button" id="s-avatar-upload-btn" class="btn btn-primary btn-sm">📁 رفع صورة من جهازك</button>
+                                <button type="button" id="s-avatar-remove-btn" class="btn btn-soft btn-sm">✕ إزالة الصورة</button>
+                                <input type="file" id="s-avatar-file" accept="image/*" class="hidden">
+                            </div>
+                        </div>
+                        <input type="url" id="s-avatar" dir="ltr" class="field" placeholder="https://... (أو الصق رابطاً)">
+                        <p class="text-xs muted mt-1">اختر صورة من جهازك لرفعها مباشرة (تُضغط تلقائياً)، أو الصق رابطاً خارجياً. الرفع يحفظ الصورة فوراً.</p>
+                        <p id="s-avatar-status" class="text-xs accent2 font-bold min-h-[1rem] mt-1"></p>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div><label class="label">البريد</label><input type="text" id="s-email" dir="ltr" class="field" placeholder="you@gmail.com"></div>
                         <div><label class="label">تيليجرام</label><input type="text" id="s-telegram" dir="ltr" class="field" placeholder="https://t.me/..."></div>
@@ -1152,6 +1170,7 @@
             $('s-name').value = o.name || ''; $('s-title').value = o.title || ''; $('s-bio').value = o.bio || ''; $('s-avatar').value = o.avatar || '';
             const L = o.links || {};
             ['email','telegram','whatsapp','discord','youtube','instagram','tiktok','facebook','x'].forEach(k => { const el = $('s-' + k); if (el) el.value = L[k] || ''; });
+            updateAvatarPreview();
         }
 
         function renderOwner() {
@@ -1180,6 +1199,99 @@
             if (!box.children.length) box.innerHTML = '<p class="muted text-sm">ستتم إضافة وسائل التواصل قريباً.</p>';
         }
 
+        function updateAvatarPreview() {
+            const el = $('s-avatar'); if (!el) return;
+            const url = safeUrl((el.value || '').trim());
+            const img = $('s-avatar-preview'), letter = $('s-avatar-preview-letter');
+            if (!img || !letter) return;
+            if (url) { img.src = url; img.classList.remove('hidden'); letter.classList.add('hidden'); }
+            else { img.removeAttribute('src'); img.classList.add('hidden'); letter.classList.remove('hidden'); letter.textContent = ((ownerData && ownerData.name) || '?').trim().charAt(0).toUpperCase() || '?'; }
+        }
+
+        function compressAvatar(file) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const size = 640;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = size; canvas.height = size;
+                        const ctx = canvas.getContext('2d');
+                        const side = Math.min(img.naturalWidth, img.naturalHeight);
+                        const sx = (img.naturalWidth - side) / 2, sy = (img.naturalHeight - side) / 2;
+                        ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+                        URL.revokeObjectURL(url);
+                        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('فشل ضغط الصورة')), 'image/jpeg', 0.88);
+                    } catch (e) { URL.revokeObjectURL(url); reject(e); }
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('ملف الصورة غير صالح')); };
+                img.src = url;
+            });
+        }
+
+        async function saveOwnerAvatar(url) {
+            if (!isAdmin) { toast('سجّل الدخول كأدمن أولاً', 'error'); return; }
+            const status = $('s-avatar-status');
+            try {
+                if (status) status.textContent = 'جاري الحفظ...';
+                const owner = { ...ownerData, avatar: url };
+                const { error } = await sb.from('site_settings').update({ data: { owner }, updated_at: new Date().toISOString() }).eq('id', 1);
+                if (error) throw error;
+                ownerData = owner;
+                renderOwner(); fillSettingsForm();
+                if (status) status.textContent = '✅ تم تحديث الصورة';
+                toast('تم تحديث صورة صاحب الموقع', 'ok');
+            } catch (e) {
+                if (status) status.textContent = 'ERROR: ' + (e.message || e);
+                toast('فشل حفظ الصورة: ' + e.message, 'error');
+            }
+        }
+
+        async function uploadOwnerAvatar(file) {
+            if (!file) return;
+            if (!isAdmin) { toast('سجّل الدخول كأدمن أولاً', 'error'); return; }
+            const status = $('s-avatar-status');
+            if (!file.type || !file.type.startsWith('image/')) { if (status) status.textContent = 'ERROR: اختر ملف صورة (JPG/PNG)'; toast('اختر ملف صورة', 'error'); return; }
+            if (file.size > 5 * 1024 * 1024) { if (status) status.textContent = 'ERROR: الصورة أكبر من 5MB'; toast('الصورة أكبر من 5MB', 'error'); return; }
+            try {
+                if (status) status.textContent = 'جاري ضغط الصورة ورفعها...';
+                const blob = await compressAvatar(file);
+                const path = 'avatars/owner_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.jpg';
+                const { error } = await sb.storage.from(CONFIG.bucket).upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+                if (error) throw error;
+                const url = publicUrl(path);
+                const el = $('s-avatar'); if (el) el.value = url;
+                updateAvatarPreview();
+                await saveOwnerAvatar(url);
+            } catch (e) {
+                if (status) status.textContent = 'ERROR: ' + (e.message || e);
+                toast('فشل رفع الصورة: ' + e.message, 'error');
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const btn = e.target && e.target.closest ? e.target.closest('#owner-change-photo, #s-avatar-upload-btn, #s-avatar-remove-btn') : null;
+            if (!btn) return;
+            if (btn.id === 's-avatar-remove-btn') { const el = $('s-avatar'); if (el) el.value = ''; updateAvatarPreview(); saveOwnerAvatar(''); return; }
+            if (!isAdmin) { toast('سجّل الدخول كأدمن أولاً', 'error'); return; }
+            const inp = btn.id === 'owner-change-photo' ? $('owner-file-input') : $('s-avatar-file');
+            if (inp) inp.click();
+        });
+        document.addEventListener('change', (e) => {
+            if (e.target && (e.target.id === 'owner-file-input' || e.target.id === 's-avatar-file')) {
+                const f = e.target.files && e.target.files[0];
+                e.target.value = '';
+                if (f) uploadOwnerAvatar(f);
+            }
+        });
+        document.addEventListener('input', (e) => {
+            if (e.target && e.target.id === 's-avatar') updateAvatarPreview();
+        });
+        $('owner-avatar').addEventListener('click', () => {
+            if (isAdmin) { const inp = $('owner-file-input'); if (inp) inp.click(); }
+        });
+
         $('settings-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!isAdmin) { toast('سجّل الدخول كأدمن أولاً', 'error'); return; }
@@ -1201,6 +1313,8 @@
         function updateAdminState(session) {
             isAdmin = !!(session && session.user && session.user.email === CONFIG.adminEmail);
             $('admin-btn').textContent = isAdmin ? '[ ADMIN ✓ ]' : '[ SYS_ADMIN ]';
+            const ocp = $('owner-change-photo'); if (ocp) ocp.classList.toggle('hidden', !isAdmin);
+            const oa = $('owner-avatar'); if (oa) { oa.style.cursor = isAdmin ? 'pointer' : ''; oa.title = isAdmin ? 'اضغط لتغيير الصورة' : ''; }
             if (allPosts.length) renderManageList();
         }
         sb.auth.onAuthStateChange((_e, session) => updateAdminState(session));
