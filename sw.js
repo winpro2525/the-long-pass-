@@ -1,5 +1,5 @@
 /* THE LONG PASS — Service Worker */
-const VERSION = 'tlp-v9';
+const VERSION = 'tlp-v11';
 const SHELL = [
   './',
   './index.html',
@@ -79,17 +79,3 @@ self.addEventListener('fetch', (e) => {
   })());
 });
 
-// ===================== إشعارات الحاسوب =====================
-self.addEventListener('notificationclick', (e) => {
-  e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || './';
-  e.waitUntil((async () => {
-    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const c of all) {
-      if (c.url.includes(url.replace(/^\.\//, '')) && 'focus' in c) return c.focus();
-    }
-    const target = all.find((c) => 'focus' in c);
-    if (target) { await target.focus(); if ('navigate' in target) return target.navigate(url); }
-    return self.clients.openWindow(url);
-  })());
-});

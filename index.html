@@ -268,7 +268,6 @@
         /* زر الثيم والعودة للأعلى */
         #theme-btn span { display: inline-block; transition: transform .5s cubic-bezier(.22,1,.36,1); }
         #theme-btn.spin span { transform: rotate(360deg) scale(1.2); }
-        .desk-notif { position: fixed; inset-inline-end: 14px; bottom: 14px; z-index: 60; box-shadow: 0 10px 30px -8px rgba(0,0,0,.7); }
         #to-top { position: fixed; bottom: 22px; right: 22px; z-index: 60; width: 46px; height: 46px; opacity: 0; transform: translateY(20px); pointer-events: none; transition: opacity .3s, transform .3s; }
         #to-top.show { opacity: 1; transform: none; pointer-events: auto; }
 
@@ -1317,91 +1316,8 @@
             const ocp = $('owner-change-photo'); if (ocp) ocp.classList.toggle('hidden', !isAdmin);
             const oa = $('owner-avatar'); if (oa) { oa.style.cursor = isAdmin ? 'pointer' : ''; oa.title = isAdmin ? 'اضغط لتغيير الصورة' : ''; }
             if (allPosts.length) renderManageList();
-            if (isAdmin) initDeskNotifications(); else { const b = document.getElementById('desk-notif-btn'); if (b) b.classList.add('hidden'); if (deskChannel) { sb.removeChannel(deskChannel); deskChannel = null; } }
         }
 
-        // ---------------------------------------- إشعارات الحاسوب
-        const DESK_URL = { comment: 'students.html', chat: 'chat.html', post: 'content.html', contact: 'contact.html', submission: 'homework.html', result: 'results.html', exam: 'exams.html', award: 'hall.html', announcement: 'announcements.html', test: 'students.html' };
-        let deskChannel = null;
-        let deskInit = false;
-        let adminUid = null;
-
-        function claimDeskNotify(id) {
-            if (!id) return true;
-            try {
-                const now = Date.now();
-                const map = JSON.parse(localStorage.getItem('deskSeen') || '{}');
-                for (const k in map) if (now - map[k] > 180000) delete map[k];
-                if (map[id]) { localStorage.setItem('deskSeen', JSON.stringify(map)); return false; }
-                map[id] = now; localStorage.setItem('deskSeen', JSON.stringify(map));
-                return true;
-            } catch (e) { return true; }
-        }
-
-        function deskBtn() {
-            let b = document.getElementById('desk-notif-btn');
-            if (b) return b;
-            b = document.createElement('button');
-            b.id = 'desk-notif-btn';
-            b.type = 'button';
-            b.className = 'btn btn-primary btn-sm desk-notif hidden';
-            b.textContent = '🔔 فعّل إشعارات الحاسوب';
-            b.addEventListener('click', enableDeskNotifications);
-            document.body.appendChild(b);
-            return b;
-        }
-
-        async function enableDeskNotifications() {
-            if (!('Notification' in window)) { toast('المتصفح لا يدعم الإشعارات', 'error'); return; }
-            let perm = Notification.permission;
-            if (perm === 'default') perm = await Notification.requestPermission();
-            if (perm !== 'granted') { toast('لم يُسمح بالإشعارات', 'error'); return; }
-            localStorage.setItem('deskNotif', '1');
-            try { await navigator.serviceWorker.ready; } catch (e) { }
-            deskBtn().classList.add('hidden');
-            initDeskNotifications();
-            toast('تم تفعيل إشعارات الحاسوب 🔔', 'ok');
-            showDesktop({ kind: 'test', title: 'إشعارات الحاسوب مفعّلة ✅', body: 'ستصلك هنا كل رسالة أو تعليق أو رفع جديد.' });
-        }
-
-        async function showDesktop(n) {
-            try {
-                const opts = { body: n.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-96.png', tag: 'tlp-' + (n.id || Date.now()), dir: 'rtl', lang: 'ar', data: { url: DESK_URL[n.kind] || 'students.html' } };
-                const reg = await navigator.serviceWorker.getRegistration();
-                if (reg && reg.showNotification) {
-                    const same = await reg.getNotifications({ tag: opts.tag }).catch(() => []);
-                    if (!same || !same.length) await reg.showNotification(n.title || 'إشعار جديد', opts);
-                }
-                else new Notification(n.title || 'إشعار جديد', opts);
-            } catch (e) { }
-        }
-
-        async function initDeskNotifications() {
-            if (!isAdmin) return;
-            if (!('Notification' in window)) return;
-            if (Notification.permission !== 'granted') {
-                if (localStorage.getItem('deskNotif') !== '0') deskBtn().classList.remove('hidden');
-                return;
-            }
-            deskBtn().classList.add('hidden');
-            if (deskChannel || deskInit) return;
-            deskInit = true;
-            try {
-                const { data } = await sb.auth.getUser();
-                adminUid = data && data.user ? data.user.id : null;
-            } catch (e) { }
-            if (!adminUid) return;
-            deskChannel = sb.channel('desk-notif-' + adminUid)
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + adminUid },
-                    (payload) => {
-                        if (!payload || !payload.new) return;
-                        if (!claimDeskNotify(payload.new.id)) return;
-                        showDesktop(payload.new);
-                    })
-                .subscribe();
-        }
-
-        deskBtn();
         sb.auth.onAuthStateChange((_e, session) => updateAdminState(session));
 
         $('admin-btn').addEventListener('click', () => openModal(isAdmin ? 'admin-modal' : 'login-modal'));
