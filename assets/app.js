@@ -1640,6 +1640,21 @@
             welcome: 'students.html', test: 'students.html'
         };
         let deskChannel = null;
+        let deskInit = false;
+
+        // منع تكرار نفس الإشعار من عدة تبويبات/صفحات
+        function claimDeskNotify(id) {
+            if (!id) return true;
+            try {
+                const now = Date.now();
+                const map = JSON.parse(localStorage.getItem('deskSeen') || '{}');
+                for (const k in map) if (now - map[k] > 180000) delete map[k];
+                if (map[id]) { localStorage.setItem('deskSeen', JSON.stringify(map)); return false; }
+                map[id] = now;
+                localStorage.setItem('deskSeen', JSON.stringify(map));
+                return true;
+            } catch (e) { return true; }
+        }
 
         function deskBtn() {
             let b = $('desk-notif-btn');
@@ -1679,22 +1694,30 @@
                     data: { url: DESK_URL[n.kind] || 'students.html' }
                 };
                 const reg = await navigator.serviceWorker.getRegistration();
-                if (reg && reg.showNotification) await reg.showNotification(n.title || 'إشعار جديد', opts);
+                if (reg && reg.showNotification) {
+                    const same = await reg.getNotifications({ tag: opts.tag }).catch(() => []);
+                    if (!same || !same.length) await reg.showNotification(n.title || 'إشعار جديد', opts);
+                }
                 else new Notification(n.title || 'إشعار جديد', opts);
             } catch (e) { }
         }
 
         function initDeskNotifications() {
-            if (!isAdmin || !me || deskChannel) return;
+            if (!isAdmin || !me || deskChannel || deskInit) return;
             if (!('Notification' in window)) return;
             if (Notification.permission !== 'granted') {
                 if (localStorage.getItem('deskNotif') !== '0') deskBtn().classList.remove('hidden');
                 return;
             }
             deskBtn().classList.add('hidden');
+            deskInit = true;
             deskChannel = sb.channel('desk-notif-' + me.id)
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + me.id },
-                    (payload) => { if (payload && payload.new) showDesktop(payload.new); })
+                    (payload) => {
+                        if (!payload || !payload.new) return;
+                        if (!claimDeskNotify(payload.new.id)) return;
+                        showDesktop(payload.new);
+                    })
                 .subscribe();
         }
 
